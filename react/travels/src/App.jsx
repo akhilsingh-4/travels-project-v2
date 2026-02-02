@@ -9,49 +9,39 @@ import UserBookings from "./components/UserBookings";
 import Wrapper from "./components/Wrapper";
 
 const App = () => {
-  const [accessToken, setAccessToken] = useState(
-    localStorage.getItem("accessToken"),
-  );
-  const [refreshToken, setRefreshToken] = useState(
-    localStorage.getItem("refreshToken"),
-  );
-  const [userId, setUserId] = useState(localStorage.getItem("userId"));
+  const [token, setToken] = useState(null);
+  const [userId, setUserId] = useState(null);
 
-  // ✅ Called after successful login
-  const handleLogin = (access, refresh, userId) => {
-    localStorage.setItem("accessToken", access);
-    localStorage.setItem("refreshToken", refresh);
-    localStorage.setItem("userId", userId);
-
-    setAccessToken(access);
-    setRefreshToken(refresh);
+  const handleLogin = (token, userId) => {
+    setToken(token);
     setUserId(userId);
   };
 
-  // ✅ Logout (JWT = client-side only)
   const handleLogout = () => {
-    localStorage.clear();
-    setAccessToken(null);
-    setRefreshToken(null);
+    setToken(null);
     setUserId(null);
   };
 
   return (
-    <Wrapper token={accessToken} handleLogout={handleLogout}>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<BusList />} />
-        <Route path="/login" element={<LoginForm onLogin={handleLogin} />} />
-        <Route path="/register" element={<RegisterForm />} />
-
-        {/* Protected routes */}
-        <Route path="/bus/:busId" element={<BusSeats token={accessToken} />} />
-        <Route
-          path="/my-bookings"
-          element={<UserBookings token={accessToken} userId={userId} />}
-        />
-      </Routes>
-    </Wrapper>
+ 
+      <Wrapper token={token} handleLogout={handleLogout}>
+        <Routes>
+          <Route path="/" element={<BusList />} />
+          <Route path="/bus/:busId" element={<BusSeats token={token} />} />
+          <Route
+            path="/login"
+            element={<LoginForm onLogin={handleLogin} />}
+          />
+          <Route path="/register" element={<RegisterForm />} />
+          <Route
+            path="/my-bookings"
+            element={
+              <UserBookings token={token} userId={userId} />
+            }
+          />
+        </Routes>
+      </Wrapper>
+  
   );
 };
 
