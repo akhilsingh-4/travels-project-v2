@@ -56,9 +56,24 @@ class LoginView(APIView):
 
 
 
+
+
 class BusListCreateApiView(generics.ListAPIView):
-    queryset = Bus.objects.all()
     serializer_class = BusSearializers
+
+    def get_queryset(self):
+        queryset = Bus.objects.all()
+
+        origin = self.request.query_params.get('origin')
+        destination = self.request.query_params.get('destination')
+
+        if origin:
+            queryset = queryset.filter(origin__icontains=origin)
+
+        if destination:
+            queryset = queryset.filter(destination__icontains = destination)
+
+        return queryset
 
 
 class BusDetailView(generics.RetrieveAPIView):
