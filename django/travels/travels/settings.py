@@ -72,7 +72,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True 
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_CREDENTIALS = True
 
 ROOT_URLCONF = 'travels.urls'
