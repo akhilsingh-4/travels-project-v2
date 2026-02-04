@@ -9,7 +9,8 @@ from .models import Bus, Seat, Booking
 from .serializers import (
     UserRegisterSerializer,
     BusSearializers,
-    BookingSerializer
+    BookingSerializer,
+    UserProfileSerializer
 )
 
 
@@ -56,6 +57,20 @@ class LoginView(APIView):
 
 
 
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 
 class BusListCreateApiView(generics.ListAPIView):
@@ -146,16 +161,10 @@ class CancelBookingView(APIView):
                         status=status.HTTP_200_OK)
 
 
-class UserBookingView(APIView):
+class MyBookingsView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, user_id):
-        if request.user.id != user_id:
-            return Response(
-                  {"error": "Forbidden"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
+    def get(self, request):
         bookings = Booking.objects.filter(user=request.user)
         serializer = BookingSerializer(bookings, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)

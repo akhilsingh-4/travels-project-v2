@@ -1,52 +1,61 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 
-const UserBookings = ({ token, userId }) => {
+const UserBookings = () => {
   const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!token || !userId) return;
+    const fetchBookings = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get("/api/my/bookings/");
+        setBookings(res.data);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    axios
-      .get(`http://localhost:8000/api/user/${userId}/bookings/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => setBookings(res.data));
-  }, [token, userId]);
+    fetchBookings();
+  }, []);
 
   const cancelBooking = async (id) => {
-    await axios.post(
-      "http://localhost:8000/api/bookings/cancel/",
-      { booking_id: id },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    setBookings(bookings.filter((b) => b.id !== id));
+    try {
+      await api.post("/api/bookings/cancel/", { booking_id: id });
+      setBookings((prev) => prev.filter((b) => b.id !== id));
+    } catch {
+      alert("❌ Failed to cancel booking. Try again.");
+    }
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      <h2 className="font-semibold mb-4">My Bookings</h2>
+    <div className="min-h-screen bg-gray-50 py-8 px-3">
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-2xl font-bold mb-6 text-center">My Bookings</h2>
 
-      {bookings.map((b) => (
-        <div key={b.id} className="border p-3 mb-2 rounded">
-          <p>Bus: {b.bus}</p>
-          <p>Seat: {b.seat}</p>
+        {loading && <p className="text-center text-sm text-gray-500">Loading...</p>}
 
-          <button
-            onClick={() => cancelBooking(b.id)}
-            className="mt-2 text-sm text-red-600"
-          >
-            Cancel
-          </button>
+        {!loading && bookings.length === 0 && (
+          <p className="text-center text-sm text-gray-500">No bookings yet.</p>
+        )}
+
+        <div className="space-y-4">
+          {bookings.map((b) => (
+            <div key={b.id} className="bg-white rounded-xl shadow-sm border p-5 flex justify-between">
+              <div>
+                <p>Bus: {b.bus}</p>
+                <p>Seat: {b.seat}</p>
+              </div>
+              <button
+                onClick={() => cancelBooking(b.id)}
+                className="px-3 py-1 border border-red-500 text-red-600 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 };
