@@ -40,7 +40,7 @@ const BusSeats = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-3">
       <div className="max-w-4xl mx-auto">
-        {/* Bus Info */}
+     
         {bus && (
           <div className="bg-white rounded-xl shadow-sm border p-5 mb-6">
             <h2 className="text-xl font-semibold text-gray-800">
@@ -52,14 +52,14 @@ const BusSeats = () => {
           </div>
         )}
 
-        {/* Loading */}
+    
         {loading && (
           <p className="text-center text-sm text-gray-500">
             Loading seats...
           </p>
         )}
 
-        {/* Seats */}
+  
         {!loading && (
           <div className="bg-white rounded-xl shadow-sm border p-5">
             <h3 className="text-sm font-semibold mb-4 text-gray-700">
@@ -84,7 +84,6 @@ const BusSeats = () => {
               ))}
             </div>
 
-            {/* Legend */}
             <div className="flex gap-4 mt-6 text-xs text-gray-600">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded bg-white border"></span>

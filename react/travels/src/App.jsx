@@ -7,6 +7,8 @@ import BusSeats from "./components/BusSeats";
 import UserBookings from "./components/UserBookings";
 import Wrapper from "./components/Wrapper";
 import UserProfile from "./components/UserProfile";
+import ResetPassword from "./components/ResetPassword";
+import ForgotPassword from "./components/ForgotPassword";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("access"));
@@ -32,6 +34,8 @@ const App = () => {
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/my-bookings" element={<UserBookings />} />
         <Route path="/profile" element={<UserProfile />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
       </Routes>
     </Wrapper>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import api from "../api/api";
 
 const LoginForm = ({ onLogin }) => {
   const [form, setForm] = useState({ username: "", password: "" });
@@ -14,7 +14,7 @@ const LoginForm = ({ onLogin }) => {
     setMessage("");
 
     try {
-      const res = await axios.post("http://localhost:8000/api/token/", form);
+      const res = await api.post("/api/token/", form);
       onLogin(res.data.access, res.data.refresh, res.data.user_id || null);
       navigate("/");
     } catch {
@@ -77,6 +77,15 @@ const LoginForm = ({ onLogin }) => {
               {message}
             </p>
           )}
+
+          <div className="text-center mt-3">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-indigo-600 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </form>
       </div>
     </div>
