@@ -11,7 +11,8 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
-
+from .payments import client
+from django.conf import settings
 from .utils import Util
 from .models import Bus, Seat, Booking
 from .serializers import (
@@ -166,6 +167,58 @@ class ConfirmPasswordResetView(APIView):
             {"message": "Password reset successful"},
             status=status.HTTP_200_OK
         )
+
+
+class CreatePaymentOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        seat_id = request.data.get("seat_id")
+
+        if not seat_id:
+            return Response({"error": "seat_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            seat = Seat.objects.select_related("bus").get(id=seat_id)
+        except Seat.DoesNotExist:
+            return Response({"error": "Invalid seat"}, status=status.HTTP_400_BAD_REQUEST)
+
+        amount = int(seat.bus.price * 100)  
+        order = client.order.create({
+            "amount": amount,
+            "currency": "INR",
+            "payment_capture": 1,
+        })
+
+        return Response({
+            "order_id": order["id"],
+            "amount": amount,
+            "currency": "INR",
+            "key": settings.RAZORPAY_KEY_ID,
+        })
+
+class VerifyPaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        payment_id = request.data.get("razorpay_payment_id")
+        order_id = request.data.get("razorpay_order_id")
+        signature = request.data.get("razorpay_signature")
+        seat_id = request.data.get("seat_id")
+
+        if not payment_id or not order_id or not signature or not seat_id:
+            return Response({"error": "Missing payment details"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            client.utility.verify_payment_signature({
+                "razorpay_order_id": order_id,
+                "razorpay_payment_id": payment_id,
+                "razorpay_signature": signature,
+            })
+        except:
+            return Response({"error": "Payment verification failed"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "Payment verified successfully"}, status=status.HTTP_200_OK)
 
 class BusListCreateApiView(generics.ListAPIView):
     serializer_class = BusSearializers

@@ -23,15 +23,63 @@ const BusSeats = () => {
     fetchBus();
   }, [busId]);
 
-  const handleBook = async (seatId) => {
+  const loadRazorpay = () =>
+    new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+
+  const handlePayAndBook = async (seatId) => {
     try {
-      await api.post("/api/booking/", { seat: seatId });
-      setSeats((prev) =>
-        prev.map((s) =>
-          s.id === seatId ? { ...s, is_booked: true } : s
-        )
-      );
-      alert("✅ Seat booked successfully");
+      const ok = await loadRazorpay();
+      if (!ok) {
+        alert("Failed to load Razorpay");
+        return;
+      }
+
+      const orderRes = await api.post("/api/payments/create-order/", {
+        seat_id: seatId,
+      });
+
+      const { order_id, amount, currency, key } = orderRes.data;
+
+      const options = {
+        key,
+        amount,
+        currency,
+        name: "Travels App",
+        description: "Bus Seat Booking",
+        order_id,
+        handler: async function (response) {
+          try {
+            await api.post("/api/payments/verify/", {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              seat_id: seatId,
+            });
+
+            await api.post("/api/booking/", { seat: seatId });
+
+            setSeats((prev) =>
+              prev.map((s) =>
+                s.id === seatId ? { ...s, is_booked: true } : s
+              )
+            );
+
+            alert("Payment successful & seat booked!");
+          } catch {
+            alert("Payment verification failed");
+          }
+        },
+        theme: { color: "#4f46e5" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch {
       navigate("/login");
     }
@@ -40,26 +88,30 @@ const BusSeats = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-3">
       <div className="max-w-4xl mx-auto">
-     
         {bus && (
           <div className="bg-white rounded-xl shadow-sm border p-5 mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">
-              {bus.bus_name}
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {bus.origin} → {bus.destination}
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {bus.bus_name}
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {bus.origin} → {bus.destination}
+                </p>
+              </div>
+              <p className="text-sm font-semibold text-indigo-600">
+                ₹{bus.price}
+              </p>
+            </div>
           </div>
         )}
 
-    
         {loading && (
           <p className="text-center text-sm text-gray-500">
             Loading seats...
           </p>
         )}
 
-  
         {!loading && (
           <div className="bg-white rounded-xl shadow-sm border p-5">
             <h3 className="text-sm font-semibold mb-4 text-gray-700">
@@ -71,7 +123,7 @@ const BusSeats = () => {
                 <button
                   key={seat.id}
                   disabled={seat.is_booked}
-                  onClick={() => handleBook(seat.id)}
+                  onClick={() => handlePayAndBook(seat.id)}
                   className={`py-2 rounded-lg text-sm font-medium border transition
                     ${
                       seat.is_booked
