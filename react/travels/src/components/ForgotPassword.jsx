@@ -11,56 +11,96 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
-
     try {
       const res = await api.post("/api/password-reset/request/", { email });
-      setMessage(res.data.message || "If this email exists, a reset link was sent.");
+      setMessage(
+        res.data.message || "If this email exists, a reset link has been sent."
+      );
     } catch {
-      setMessage("❌ Something went wrong. Please try again.");
+      setMessage("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
-          Forgot Password 🔐
-        </h2>
-        <p className="text-center text-sm text-gray-500 mb-6">
-          Enter your email to receive a reset link
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black px-4">
+      {/* Soft ambient blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-cyan-500 rounded-full blur-3xl opacity-15"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-600 rounded-full blur-3xl opacity-15"></div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+      <div className="relative w-full max-w-md backdrop-blur-2xl bg-white/5 border border-white/10 rounded-3xl shadow-[0_0_28px_rgba(34,211,238,0.2)] p-8">
+        {/* Top accent bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-t-3xl" />
 
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_20px_rgba(34,211,238,0.45)] flex items-center justify-center text-xl">
+            🔐
+          </div>
+          <h2 className="text-2xl font-semibold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
+            Reset Password
+          </h2>
+          <p className="text-gray-400 mt-1">
+            Enter your email to receive a reset link
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">
+              Email address
+            </label>
+            <input
+              type="email"
+              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white focus:outline-none focus:border-cyan-400 transition"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              We’ll send a reset link if this email exists.
+            </p>
+          </div>
+
+          {/* Submit */}
           <button
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold transition disabled:opacity-60"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold shadow hover:shadow-cyan-500/30 transition disabled:opacity-60"
           >
-            {loading ? "Sending..." : "Send Reset Link"}
+            {loading ? "Sending reset link…" : "Send reset link"}
           </button>
 
+          {/* Message */}
           {message && (
-            <p className="text-center text-sm mt-2">
+            <div
+              className={`p-3 rounded-xl border ${
+                message.toLowerCase().includes("wrong")
+                  ? "border-red-400/30 bg-red-500/10 text-red-300"
+                  : "border-green-400/30 bg-green-500/10 text-green-300"
+              }`}
+            >
               {message}
-            </p>
+            </div>
           )}
+
+          {/* Security note */}
+          <div className="mt-4 p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 text-sm">
+            Reset links expire in 1 hour. Check spam if you don’t see the email.
+          </div>
         </form>
 
-        <p className="text-center text-sm mt-4">
-          <Link to="/login" className="text-indigo-600 hover:underline">
-            Back to Login
+        {/* Footer */}
+        <div className="mt-8 text-center text-sm text-gray-400">
+          Remembered your password?{" "}
+          <Link to="/login" className="text-cyan-300 hover:underline">
+            Back to login
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

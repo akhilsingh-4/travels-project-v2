@@ -35,10 +35,7 @@ const BusSeats = () => {
   const handlePayAndBook = async (seatId) => {
     try {
       const ok = await loadRazorpay();
-      if (!ok) {
-        alert("Failed to load Razorpay");
-        return;
-      }
+      if (!ok) return alert("Failed to load payment gateway");
 
       const orderRes = await api.post("/api/payments/create-order/", {
         seat_id: seatId,
@@ -70,12 +67,12 @@ const BusSeats = () => {
               )
             );
 
-            alert("Payment successful & seat booked!");
+            alert("Payment successful. Your seat is confirmed.");
           } catch {
-            alert("Payment verification failed");
+            alert("Payment verification failed. Please try again.");
           }
         },
-        theme: { color: "#4f46e5" },
+        theme: { color: "#22d3ee" },
       };
 
       const rzp = new window.Razorpay(options);
@@ -85,67 +82,110 @@ const BusSeats = () => {
     }
   };
 
+  const rows = [];
+  for (let i = 0; i < seats.length; i += 4) rows.push(seats.slice(i, i + 4));
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-3">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white py-10 px-4">
       <div className="max-w-4xl mx-auto">
+
+        {/* Mini Journey Preview */}
         {bus && (
-          <div className="bg-white rounded-xl shadow-sm border p-5 mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {bus.bus_name}
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  {bus.origin} → {bus.destination}
-                </p>
-              </div>
-              <p className="text-sm font-semibold text-indigo-600">
-                ₹{bus.price}
+          <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <p className="text-xs text-gray-500">Route</p>
+              <p className="text-cyan-300 font-semibold">
+                {bus.origin} → {bus.destination}
               </p>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <p className="text-xs text-gray-500">Departure</p>
+              <p className="text-white font-semibold">{bus.start_time}</p>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <p className="text-xs text-gray-500">Fare</p>
+              <p className="text-purple-300 font-semibold">₹{bus.price}</p>
             </div>
           </div>
         )}
 
-        {loading && (
-          <p className="text-center text-sm text-gray-500">
-            Loading seats...
-          </p>
+        {/* Bus Info Card */}
+        {bus && (
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 mb-8">
+            <h2 className="text-2xl font-semibold text-cyan-300">
+              {bus.bus_name}
+            </h2>
+            <p className="text-gray-400 mt-1">
+              {bus.origin} → {bus.destination}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              {bus.start_time} – {bus.reach_time}
+            </p>
+          </div>
         )}
 
+        {/* Loading */}
+        {loading && (
+          <div className="text-center py-12 text-cyan-300">
+            <div className="w-10 h-10 mx-auto border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-3">Loading seat availability…</p>
+          </div>
+        )}
+
+        {/* Seat Layout */}
         {!loading && (
-          <div className="bg-white rounded-xl shadow-sm border p-5">
-            <h3 className="text-sm font-semibold mb-4 text-gray-700">
-              Select Your Seat
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6">
+            <h3 className="text-xl font-semibold text-cyan-300 mb-4">
+              Choose Your Seat
             </h3>
 
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
-              {seats.map((seat) => (
-                <button
-                  key={seat.id}
-                  disabled={seat.is_booked}
-                  onClick={() => handlePayAndBook(seat.id)}
-                  className={`py-2 rounded-lg text-sm font-medium border transition
-                    ${
-                      seat.is_booked
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white hover:bg-indigo-50 hover:border-indigo-400"
-                    }`}
-                >
-                  {seat.seat_number}
-                </button>
+            <div className="flex justify-center mb-6">
+              <div className="px-4 py-2 rounded-xl bg-white/10 border border-white/10 text-gray-200">
+                Driver
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex justify-center gap-10">
+                  {[...row.slice(0, 2), null, ...row.slice(2, 4)].map((seat, idx) =>
+                    seat ? (
+                      <button
+                        key={seat.id}
+                        disabled={seat.is_booked}
+                        onClick={() => handlePayAndBook(seat.id)}
+                        className={`w-12 h-12 rounded-xl text-sm font-semibold border transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400/60
+                          ${
+                            seat.is_booked
+                              ? "bg-white/5 border-white/10 text-gray-500 cursor-not-allowed"
+                              : "bg-black/40 border-cyan-400/40 text-cyan-300 hover:bg-cyan-500/10"
+                          }`}
+                      >
+                        {seat.seat_number}
+                      </button>
+                    ) : (
+                      <div key={idx} className="w-10" />
+                    )
+                  )}
+                </div>
               ))}
             </div>
 
-            <div className="flex gap-4 mt-6 text-xs text-gray-600">
+            {/* Legend Pills */}
+            <div className="flex justify-center gap-6 mt-8 text-xs text-gray-400">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded bg-white border"></span>
-                <span>Available</span>
+                <span className="w-4 h-4 rounded bg-black/40 border border-cyan-400/40" />
+                Available
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded bg-gray-200 border"></span>
-                <span>Booked</span>
+                <span className="w-4 h-4 rounded bg-white/10 border border-white/10" />
+                Booked
               </div>
             </div>
+
+            <p className="text-center text-gray-500 text-sm mt-6">
+              Select an available seat to proceed with payment
+            </p>
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import api from "../api/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const RegisterForm = () => {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
@@ -15,89 +15,105 @@ const RegisterForm = () => {
 
     try {
       await api.post("/api/register/", form);
-      setMessage("✅ Account created successfully. You can now login.");
+      setMessage("Account created successfully. Redirecting to login…");
       setTimeout(() => navigate("/login"), 1200);
     } catch {
-      setMessage("❌ Registration failed. Try a different username/email.");
+      setMessage("Registration failed. The username or email may already be in use.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
-          Create Account
-        </h2>
-        <p className="text-center text-sm text-gray-500 mb-6">
-          Join and start booking your trips
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black px-4">
+      {/* Soft background glows */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500 rounded-full blur-3xl opacity-10"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-10"></div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="relative w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-[0_0_32px_rgba(168,85,247,0.18)] p-8">
+        {/* Top accent */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-t-3xl" />
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_24px_rgba(34,211,238,0.4)] flex items-center justify-center text-xl">
+            🚌
+          </div>
+          <h2 className="text-3xl font-semibold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
+            Create your account
+          </h2>
+          <p className="text-gray-400 mt-1">
+            Get started with secure bus bookings
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Username */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Username
-            </label>
+            <label className="block text-sm text-gray-400 mb-1">Username</label>
             <input
-              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/30 transition"
               placeholder="Choose a username"
-              onChange={(e) =>
-                setForm({ ...form, username: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
               required
             />
           </div>
 
+          {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Email
-            </label>
+            <label className="block text-sm text-gray-400 mb-1">Email</label>
             <input
               type="email"
-              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white placeholder-gray-500 focus:outline-none focus:border-purple-400/70 focus:ring-2 focus:ring-purple-400/30 transition"
               placeholder="Enter your email"
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Password
-            </label>
+            <label className="block text-sm text-gray-400 mb-1">Password</label>
             <input
               type="password"
-              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder="Create a password"
-              onChange={(e) =>
-                setForm({ ...form, password: e.target.value })
-              }
+              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/30 transition"
+              placeholder="Create a strong password"
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
             />
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold transition disabled:opacity-60"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold shadow hover:shadow-cyan-500/30 transition disabled:opacity-60"
           >
-            {loading ? "Creating account..." : "Register"}
+            {loading ? "Creating account..." : "Create Account"}
           </button>
 
+          {/* Message */}
           {message && (
-            <p
-              className={`text-center text-sm mt-2 ${
-                message.startsWith("✅")
-                  ? "text-green-600"
-                  : "text-red-600"
+            <div
+              className={`p-3 rounded-xl border ${
+                message.toLowerCase().includes("success")
+                  ? "border-green-400/30 bg-green-500/10 text-green-300"
+                  : "border-red-400/30 bg-red-500/10 text-red-300"
               }`}
             >
               {message}
-            </p>
+            </div>
           )}
+
+          {/* Footer */}
+          <div className="text-center text-sm text-gray-400 pt-4 border-t border-white/10">
+            Already have an account?{" "}
+            <Link to="/login" className="text-cyan-300 hover:underline">
+              Sign in
+            </Link>
+          </div>
         </form>
       </div>
     </div>
