@@ -56,6 +56,7 @@ const Wrapper = ({ token, handleLogout, children }) => {
                 >
                   Profile
                 </Link>
+
                 <Link
                   to="/my-bookings"
                   className={`px-4 py-2 rounded-xl transition ${isActive(
@@ -63,6 +64,15 @@ const Wrapper = ({ token, handleLogout, children }) => {
                   )}`}
                 >
                   My Bookings
+                </Link>
+
+                <Link
+                  to="/my-payments"
+                  className={`px-4 py-2 rounded-xl transition ${isActive(
+                    "/my-payments"
+                  )}`}
+                >
+                  My Payments
                 </Link>
               </>
             )}
@@ -122,11 +132,19 @@ const Wrapper = ({ token, handleLogout, children }) => {
                 >
                   Profile
                 </Link>
+
                 <Link
                   to="/my-bookings"
                   className="block px-4 py-2 rounded-xl hover:bg-cyan-500/10 hover:text-cyan-300 transition"
                 >
                   My Bookings
+                </Link>
+
+                <Link
+                  to="/my-payments"
+                  className="block px-4 py-2 rounded-xl hover:bg-cyan-500/10 hover:text-cyan-300 transition"
+                >
+                  My Payments
                 </Link>
               </>
             )}

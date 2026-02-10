@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Booking Cancelled - Travels App</title>
+  </head>
+  <body style="margin:0; padding:0; background:#f3f4f6; font-family: Arial, Helvetica, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6; padding: 20px;">
+      <tr>
+        <td align="center">
+          <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px; background:#ffffff; border-radius:12px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
+            
+            <!-- Header -->
+            <tr>
+              <td align="center" style="padding-bottom: 12px;">
+                <h2 style="margin:0; color:#dc2626;">❌ Booking Cancelled</h2>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="color:#111827; font-size: 15px; line-height: 1.6;">
+                <p>Hi <strong>{{ username }}</strong>,</p>
+
+                <p>Your bus booking has been successfully cancelled.</p>
+
+                <div style="padding: 14px; border-radius: 8px; background: #f9fafb; margin: 16px 0; border: 1px solid #e5e7eb;">
+                  <p style="margin:4px 0;"><strong>Bus:</strong> {{ bus_name }}</p>
+                  <p style="margin:4px 0;"><strong>Route:</strong> {{ origin }} → {{ destination }}</p>
+                  <p style="margin:4px 0;"><strong>Seat:</strong> {{ seat_number }}</p>
+                  <p style="margin:4px 0;"><strong>Time:</strong> {{ start_time }} – {{ reach_time }}</p>
+                </div>
+
+                <p>If this was a mistake, you can book another seat anytime.</p>
+
+                <p style="text-align:center; margin: 20px 0;">
+                  <a href="http://localhost:5173/"
+                     style="display:inline-block; padding: 12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius: 8px; font-weight:600;">
+                    Book Another Seat
+                  </a>
+                </p>
+
+                <p style="margin-top: 24px; color:#374151;">
+                  – Travels App Team 🚌
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

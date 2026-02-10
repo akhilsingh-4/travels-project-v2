@@ -33,9 +33,8 @@ const UserBookings = () => {
     }
   };
 
-  const handlePrint = (booking) => {
+  const handlePrint = () => {
     alert("Ticket download will be available soon.");
-    // Later: window.open(booking.ticket_url, "_blank");
   };
 
   const formatDate = (dateStr) => {
@@ -48,15 +47,13 @@ const UserBookings = () => {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_24px_rgba(34,211,238,0.4)] flex items-center justify-center text-xl">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow flex items-center justify-center text-xl">
             🎫
           </div>
           <h1 className="text-3xl font-semibold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
             My Bookings
           </h1>
-          <p className="text-gray-400 mt-1">
-            View and manage your reservations
-          </p>
+          <p className="text-gray-400 mt-1">View and manage your reservations</p>
         </div>
 
         {/* Loading */}
@@ -67,9 +64,9 @@ const UserBookings = () => {
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Empty */}
         {!loading && bookings.length === 0 && (
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-10 text-center shadow-[0_0_24px_rgba(168,85,247,0.15)] max-w-md mx-auto">
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-10 text-center max-w-md mx-auto">
             <div className="text-4xl mb-4">🚌</div>
             <h3 className="text-lg font-semibold text-cyan-300 mb-2">
               No bookings found
@@ -79,7 +76,7 @@ const UserBookings = () => {
             </p>
             <Link
               to="/"
-              className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold shadow hover:shadow-cyan-500/30 transition"
+              className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold"
             >
               Explore buses
             </Link>
@@ -92,23 +89,33 @@ const UserBookings = () => {
             {bookings.map((b) => (
               <div
                 key={b.id}
-                className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 shadow-[0_0_24px_rgba(34,211,238,0.12)] hover:shadow-[0_0_32px_rgba(168,85,247,0.25)] transition"
+                className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 transition"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  {/* Left info */}
                   <div>
                     <h3 className="text-lg font-semibold text-cyan-300">
-                      {b.bus}
+                      {b.bus_name || b.bus}
                     </h3>
-                    <p className="text-gray-400 mt-1">
-                      Seat {b.seat} • Booking ID #{b.id}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {formatDate(b.created_at)
-                        ? `Booked on ${formatDate(b.created_at)}`
-                        : "Booking confirmed"}
-                    </p>
+
+                    {b.origin && b.destination && (
+                      <p className="text-sm text-gray-400">
+                        {b.origin} → {b.destination}
+                      </p>
+                    )}
+
+                    <div className="mt-2 text-sm text-gray-400 space-y-1">
+                      <p>Seat: <span className="text-white">{b.seat}</span></p>
+                      <p>Booking ID: <span className="text-white">#{b.id}</span></p>
+                      <p>
+                        {formatDate(b.created_at)
+                          ? `Booked on ${formatDate(b.created_at)}`
+                          : "Booking confirmed"}
+                      </p>
+                    </div>
                   </div>
 
+                  {/* Actions */}
                   <div className="flex flex-wrap gap-3 items-center">
                     <span className="px-3 py-1 rounded-full text-xs border border-green-400/30 bg-green-500/10 text-green-300">
                       {b.status || "Confirmed"}
@@ -126,7 +133,7 @@ const UserBookings = () => {
                       onClick={() => handlePrint(b)}
                       className="px-4 py-2 rounded-xl border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/10 transition"
                     >
-                      Print ticket
+                      Print Ticket
                     </button>
                   </div>
                 </div>
@@ -137,7 +144,7 @@ const UserBookings = () => {
 
         {/* Summary */}
         {!loading && bookings.length > 0 && (
-          <div className="mt-10 backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-5 shadow-[0_0_20px_rgba(168,85,247,0.15)] text-center">
+          <div className="mt-10 backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-5 text-center">
             <p className="text-gray-400">
               You have{" "}
               <span className="text-cyan-300 font-semibold">

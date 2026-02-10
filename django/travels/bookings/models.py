@@ -34,3 +34,25 @@ class Booking(models.Model):
     def __str__(self):
         return f"{self.user.username}-{self.bus.bus_name}-{self.bus.start_time}-{self.bus.reach_time}-{self.seat.seat_number}"
     
+
+class Payment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
+    booking = models.ForeignKey(Booking, on_delete=models.SET_NULL, null=True, blank=True)
+    razorpay_order_id = models.CharField(max_length=100, unique=True)
+    razorpay_payment_id = models.CharField(max_length=100, null=True, blank=True)
+    razorpay_signature = models.CharField(max_length=255, null=True, blank=True)
+    amount = models.PositiveIntegerField()
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("CREATED", "CREATED"),
+            ("SUCCESS", "SUCCESS"),
+            ("FAILED", "FAILED"),
+            ("REFUNDED", "REFUNDED"),
+        ],
+        default="CREATED"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.razorpay_order_id} - {self.status}"

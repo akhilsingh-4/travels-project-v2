@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterApiView,LoginView, BusDetailView, BusListCreateApiView, BookingView,VerifyPaymentView, CreatePaymentOrderView, RequestPasswordResetView, ConfirmPasswordResetView, UserProfileView,MyBookingsView,CancelBookingView
+from .views import RegisterApiView,LoginView,PaymentStatusView, MyPaymentsView, BusDetailView, BusListCreateApiView, BookingView,VerifyPaymentView, CreatePaymentOrderView, RequestPasswordResetView, ConfirmPasswordResetView, UserProfileView,MyBookingsView,CancelBookingView
 
 urlpatterns = [
     path('buses/', BusListCreateApiView.as_view(), name='buslist'),
@@ -14,7 +14,8 @@ urlpatterns = [
     path("password-reset/confirm/", ConfirmPasswordResetView.as_view()),
     path("payments/create-order/", CreatePaymentOrderView.as_view()),
     path("payments/verify/", VerifyPaymentView.as_view()),
-
+    path("payments/my/", MyPaymentsView.as_view()),
+    path("payments/status/<str:order_id>/", PaymentStatusView.as_view()),
 
 
 ]

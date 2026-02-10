@@ -9,6 +9,8 @@ import Wrapper from "./components/Wrapper";
 import UserProfile from "./components/UserProfile";
 import ResetPassword from "./components/ResetPassword";
 import ForgotPassword from "./components/ForgotPassword";
+import MyPayments from "./components/MyPayments";
+import PaymentStatus from "./components/PaymentStatus";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("access"));
@@ -36,6 +38,8 @@ const App = () => {
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
+        <Route path="/my-payments" element={<MyPayments />} />
+        <Route path="/payment-status/:orderId" element={<PaymentStatus />} />
       </Routes>
     </Wrapper>
   );

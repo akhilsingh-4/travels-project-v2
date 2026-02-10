@@ -14,12 +14,13 @@ from django.utils.encoding import force_str
 from .payments import client
 from django.conf import settings
 from .utils import Util
-from .models import Bus, Seat, Booking
+from .models import Bus, Seat, Booking, Payment
 from .serializers import (
     UserRegisterSerializer,
     BusSearializers,
     BookingSerializer,
-    UserProfileSerializer
+    UserProfileSerializer,
+    PaymentSerializer
 )
 
 
@@ -32,20 +33,16 @@ class RegisterApiView(APIView):
             user = serializer.save()
 
             if user.email:
-                data = {
-                    "subject": "Welcome to Travels App",
-                    "message": (
-                        f"Hi {user.username},\n\n"
-                        "Welcome to Travels App! 🎉\n"
-                        "Your account has been created successfully.\n\n"
-                        "You can now login and start booking buses.\n\n"
-                        "Happy travels!"
-                    ),
-                    "to_email": user.email,
-                }
-
                 try:
-                    Util.send_email(data)
+                    Util.send_templated_email(
+                        subject="Welcome to Travels App",
+                        template_name="emails/register.html",
+                        context={
+                            "username": user.username,
+                            "link": "http://localhost:5173/login",
+                        },
+                        to_email=user.email
+                    )
                 except Exception as e:
                     print("Email failed:", e)
 
@@ -109,27 +106,23 @@ class RequestPasswordResetView(APIView):
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = PasswordResetTokenGenerator().make_token(user)
-
         reset_link = f"http://localhost:5173/reset-password/{uid}/{token}/"
 
-        data = {
-            "subject": "Reset Your Password - Travels App",
-            "message": (
-                f"Hi {user.username},\n\n"
-                "You requested to reset your password.\n\n"
-                f"Click the link below to reset it:\n{reset_link}\n\n"
-                "If you didn’t request this, ignore this email."
-            ),
-            "to_email": user.email,
-        }
-
         try:
-            Util.send_email(data)
+            Util.send_templated_email(
+                subject="Reset Your Password - Travels App",
+                template_name="emails/reset_password.html",
+                context={
+                    "username": user.username,
+                    "reset_link": reset_link,
+                },
+                to_email=user.email
+            )
         except Exception as e:
             print("Password reset email failed:", e)
 
         return Response({"message": "If this email exists, a reset link will be sent"}, status=status.HTTP_200_OK)
-    
+
 
 class ConfirmPasswordResetView(APIView):
     permission_classes = []
@@ -140,33 +133,21 @@ class ConfirmPasswordResetView(APIView):
         password = request.data.get("password")
 
         if not uid or not token or not password:
-            return Response(
-                {"error": "uid, token and password are required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "uid, token and password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user_id = force_str(urlsafe_base64_decode(uid))
             user = User.objects.get(id=user_id)
         except Exception:
-            return Response(
-                {"error": "Invalid reset link"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Invalid reset link"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not PasswordResetTokenGenerator().check_token(user, token):
-            return Response(
-                {"error": "Invalid or expired token"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(password)
         user.save()
 
-        return Response(
-            {"message": "Password reset successful"},
-            status=status.HTTP_200_OK
-        )
+        return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
 
 
 class CreatePaymentOrderView(APIView):
@@ -183,12 +164,19 @@ class CreatePaymentOrderView(APIView):
         except Seat.DoesNotExist:
             return Response({"error": "Invalid seat"}, status=status.HTTP_400_BAD_REQUEST)
 
-        amount = int(seat.bus.price * 100)  
+        amount = int(seat.bus.price * 100)
         order = client.order.create({
             "amount": amount,
             "currency": "INR",
             "payment_capture": 1,
         })
+
+        Payment.objects.create(
+            user=request.user,
+            razorpay_order_id=order["id"],
+            amount=amount,
+            status="CREATED"
+        )
 
         return Response({
             "order_id": order["id"],
@@ -196,6 +184,7 @@ class CreatePaymentOrderView(APIView):
             "currency": "INR",
             "key": settings.RAZORPAY_KEY_ID,
         })
+
 
 class VerifyPaymentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -218,20 +207,47 @@ class VerifyPaymentView(APIView):
         except:
             return Response({"error": "Payment verification failed"}, status=status.HTTP_400_BAD_REQUEST)
 
+        payment = Payment.objects.get(razorpay_order_id=order_id, user=request.user)
+        payment.razorpay_payment_id = payment_id
+        payment.razorpay_signature = signature
+        payment.status = "SUCCESS"
+        payment.save()
+
         return Response({"message": "Payment verified successfully"}, status=status.HTTP_200_OK)
+
+
+class MyPaymentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        payments = Payment.objects.filter(user=request.user).order_by("-created_at")
+        serializer = PaymentSerializer(payments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PaymentStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, order_id):
+        try:
+            payment = Payment.objects.get(razorpay_order_id=order_id, user=request.user)
+        except Payment.DoesNotExist:
+            return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PaymentSerializer(payment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class BusListCreateApiView(generics.ListAPIView):
     serializer_class = BusSearializers
 
     def get_queryset(self):
         queryset = Bus.objects.all()
-
         origin = self.request.query_params.get("origin")
         destination = self.request.query_params.get("destination")
 
         if origin:
             queryset = queryset.filter(origin__icontains=origin)
-
         if destination:
             queryset = queryset.filter(destination__icontains=destination)
 
@@ -253,38 +269,30 @@ class BookingView(APIView):
             return Response({"error": "Seat ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            try:
-                seat = Seat.objects.select_for_update().select_related("bus").get(id=seat_id)
-            except Seat.DoesNotExist:
-                return Response({"error": "Invalid Seat ID"}, status=status.HTTP_400_BAD_REQUEST)
-
+            seat = Seat.objects.select_for_update().select_related("bus").get(id=seat_id)
             if seat.is_booked:
                 return Response({"error": "Seat already booked"}, status=status.HTTP_400_BAD_REQUEST)
 
             booking = Booking.objects.create(user=request.user, bus=seat.bus, seat=seat)
-
             seat.is_booked = True
             seat.save()
 
-        if request.user.email:  
-            data = {
-                "subject": "Booking Confirmed - Travels App",
-                "message": (
-                    f"Hi {request.user.username},\n\n"
-                    "Your seat has been booked successfully! 🎉\n\n"
-                    f"Bus: {seat.bus.bus_name}\n"
-                    f"Route: {seat.bus.origin} → {seat.bus.destination}\n"
-                    f"Start: {seat.bus.start_time}\n"
-                    f"Reach: {seat.bus.reach_time}\n"
-                    f"Seat: {seat.seat_number}\n"
-                    f"Price: ₹{seat.bus.price}\n\n"
-                    "Thank you for booking with Travels App. Have a safe journey!"
-                ),
-                "to_email": request.user.email,
-            }
-
+        if request.user.email:
             try:
-                Util.send_email(data)
+                Util.send_templated_email(
+                    subject="Booking Confirmed - Travels App",
+                    template_name="emails/booking_confirmed.html",
+                    context={
+                        "username": request.user.username,
+                        "bus_name": seat.bus.bus_name,
+                        "origin": seat.bus.origin,
+                        "destination": seat.bus.destination,
+                        "seat_number": seat.seat_number,
+                        "price": seat.bus.price,
+                        "link": "http://localhost:5173/my-bookings",
+                    },
+                    to_email=request.user.email
+                )
             except Exception as e:
                 print("Booking email failed:", e)
 
@@ -301,30 +309,27 @@ class CancelBookingView(APIView):
         if not booking_id:
             return Response({"error": "Booking id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            booking = Booking.objects.select_related("seat", "bus").get(id=booking_id, user=request.user)
-        except Booking.DoesNotExist:
-            return Response({"error": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
-
+        booking = Booking.objects.select_related("seat", "bus").get(id=booking_id, user=request.user)
         seat = booking.seat
         seat.is_booked = False
         seat.save()
 
         if request.user.email:
-            data = {
-                "subject": "Booking Cancelled - Travels App",
-                "message": (
-                    f"Hi {request.user.username},\n\n"
-                    "Your booking has been cancelled.\n\n"
-                    f"Bus: {booking.bus.bus_name}\n"
-                    f"Seat: {seat.seat_number}\n\n"
-                    "Hope to see you again!"
-                ),
-                "to_email": request.user.email,
-            }
-
             try:
-                Util.send_email(data)
+                Util.send_templated_email(
+                    subject="Booking Cancelled - Travels App",
+                    template_name="emails/booking_cancelled.html",
+                    context={
+                        "username": request.user.username,
+                        "bus_name": booking.bus.bus_name,
+                        "origin": booking.bus.origin,
+                        "destination": booking.bus.destination,
+                        "seat_number": seat.seat_number,
+                        "start_time": booking.bus.start_time,
+                        "reach_time": booking.bus.reach_time,
+                    },
+                    to_email=request.user.email
+                )
             except Exception as e:
                 print("Cancel email failed:", e)
 
