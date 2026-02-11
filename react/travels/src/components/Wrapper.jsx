@@ -29,6 +29,10 @@ const Wrapper = ({ token, handleLogout, children }) => {
       ? "bg-cyan-500/10 text-cyan-300 border border-cyan-400/30"
       : "text-gray-300 hover:text-cyan-300 hover:bg-white/5 border border-transparent";
 
+  const avatarUrl = me?.avatar
+    ? `http://localhost:8000${me.avatar}`
+    : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
       {/* Navbar */}
@@ -95,10 +99,21 @@ const Wrapper = ({ token, handleLogout, children }) => {
             ) : (
               <div className="flex items-center gap-3">
                 {me && (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center text-black font-semibold">
-                    {me.username?.[0]?.toUpperCase()}
+                  <div className="w-9 h-9 rounded-full bg-white/10 border border-white/20 overflow-hidden flex items-center justify-center">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-cyan-300 font-semibold">
+                        {me.username?.[0]?.toUpperCase()}
+                      </span>
+                    )}
                   </div>
                 )}
+
                 <button
                   onClick={() => {
                     handleLogout();

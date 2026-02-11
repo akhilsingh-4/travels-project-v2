@@ -33,9 +33,25 @@ const UserBookings = () => {
     }
   };
 
-  const handlePrint = () => {
-    alert("Ticket download will be available soon.");
-  };
+ const handlePrint = async (booking) => {
+  try {
+    const res = await api.get(`/api/bookings/${booking.id}/ticket/`, {
+      responseType: "blob",
+    });
+
+    const blob = new Blob([res.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ticket_${booking.id}.pdf`;
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert("Failed to download ticket.");
+  }
+};
 
   const formatDate = (dateStr) => {
     if (!dateStr) return null;

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Bus, Seat, Booking, Payment
+from .models import Bus, Seat, Booking, Payment, Profile
 from django.contrib.auth.models import User
 
 
@@ -20,11 +20,32 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField(source="profile.avatar", required=False)
+
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name"]
-        read_only_fields = ["id", "username"] 
+        fields = ["id", "username", "email", "first_name", "last_name", "avatar"]
+        read_only_fields = ["id", "username"]
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop("profile", {})
+
+        # Update user fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Ensure profile exists (fix for old users)
+        profile, _ = Profile.objects.get_or_create(user=instance)
+
+        # Update avatar if provided
+        if "avatar" in profile_data:
+            profile.avatar = profile_data["avatar"]
+            profile.save()
+
+        return instance
 
 class SeatSerializer(serializers.ModelSerializer):
     class Meta:

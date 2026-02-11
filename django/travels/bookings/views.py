@@ -22,6 +22,81 @@ from .serializers import (
     UserProfileSerializer,
     PaymentSerializer
 )
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from django.http import HttpResponse
+
+
+class BookingTicketView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, booking_id):
+        try:
+            booking = Booking.objects.select_related("bus", "seat").get(id=booking_id, user=request.user)
+        except Booking.DoesNotExist:
+            return Response({"error":"Booking not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="ticket_{booking.id}.pdf"'
+
+        p = canvas.Canvas(response, pagesize=A4)
+        width, height= A4
+
+          # Card background
+        card_x = 40
+        card_y = 120
+        card_w = width - 80
+        card_h = height - 200
+
+        p.setFillColorRGB(0.05, 0.1, 0.15)
+        p.roundRect(card_x, card_y, card_w, card_h, 20, fill=1)
+
+        # Header
+        p.setFillColor(colors.white)
+        p.setFont("Helvetica-Bold", 20)
+        p.drawString(card_x + 30, height - 100, "🚌 Travels App - Bus Ticket")
+
+        p.setFont("Helvetica", 11)
+        p.setFillColor(colors.lightgrey)
+        p.drawString(card_x + 30, height - 125, f"Booking ID: #{booking.id}")
+
+        # Divider
+        p.setStrokeColor(colors.grey)
+        p.line(card_x + 20, height - 145, card_x + card_w - 20, height - 145)
+
+        y = height - 180
+        gap = 28
+
+        def field(label, value):
+            nonlocal y
+            p.setFillColor(colors.cyan)
+            p.setFont("Helvetica-Bold", 11)
+            p.drawString(card_x + 30, y, label)
+
+            p.setFillColor(colors.white)
+            p.setFont("Helvetica", 12)
+            p.drawString(card_x + 180, y, value)
+            y -= gap
+
+        field("Passenger", booking.user.username)
+        field("Bus", booking.bus.bus_name)
+        field("Route", f"{booking.bus.origin} → {booking.bus.destination}")
+        field("Seat", booking.seat.seat_number)
+        field("Start Time", str(booking.bus.start_time))
+        field("Reach Time", str(booking.bus.reach_time))
+        field("Price", f"₹ {booking.bus.price}")
+        field("Booked At", booking.booking_time.strftime("%d %b %Y, %I:%M %p"))
+
+        # Footer
+        p.setFillColor(colors.lightgrey)
+        p.setFont("Helvetica-Oblique", 10)
+        p.drawString(card_x + 30, card_y + 30, "Show this ticket while boarding. Have a safe journey!")
+
+        p.showPage()
+        p.save()
+        return response
+
 
 
 class RegisterApiView(APIView):
