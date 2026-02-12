@@ -89,7 +89,7 @@ const BusSeats = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white py-10 px-4">
       <div className="max-w-4xl mx-auto">
 
-        {/* Mini Journey Preview */}
+    
         {bus && (
           <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white/5 border border-white/10 rounded-xl p-4">
@@ -109,7 +109,6 @@ const BusSeats = () => {
           </div>
         )}
 
-        {/* Bus Info Card */}
         {bus && (
           <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 mb-8">
             <h2 className="text-2xl font-semibold text-cyan-300">
@@ -124,7 +123,6 @@ const BusSeats = () => {
           </div>
         )}
 
-        {/* Loading */}
         {loading && (
           <div className="text-center py-12 text-cyan-300">
             <div className="w-10 h-10 mx-auto border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
@@ -132,7 +130,7 @@ const BusSeats = () => {
           </div>
         )}
 
-        {/* Seat Layout */}
+    
         {!loading && (
           <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6">
             <h3 className="text-xl font-semibold text-cyan-300 mb-4">
@@ -171,7 +169,7 @@ const BusSeats = () => {
               ))}
             </div>
 
-            {/* Legend Pills */}
+      
             <div className="flex justify-center gap-6 mt-8 text-xs text-gray-400">
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded bg-black/40 border border-cyan-400/40" />

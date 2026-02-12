@@ -61,7 +61,7 @@ const UserBookings = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white py-10 px-4">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
+
         <div className="text-center mb-12">
           <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow flex items-center justify-center text-xl">
             🎫
@@ -72,7 +72,7 @@ const UserBookings = () => {
           <p className="text-gray-400 mt-1">View and manage your reservations</p>
         </div>
 
-        {/* Loading */}
+
         {loading && (
           <div className="text-center py-16 text-cyan-300">
             <div className="w-10 h-10 mx-auto border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
@@ -80,7 +80,7 @@ const UserBookings = () => {
           </div>
         )}
 
-        {/* Empty */}
+
         {!loading && bookings.length === 0 && (
           <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-10 text-center max-w-md mx-auto">
             <div className="text-4xl mb-4">🚌</div>
@@ -99,7 +99,7 @@ const UserBookings = () => {
           </div>
         )}
 
-        {/* Bookings */}
+
         {!loading && bookings.length > 0 && (
           <div className="space-y-5">
             {bookings.map((b) => (
@@ -108,7 +108,7 @@ const UserBookings = () => {
                 className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 transition"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  {/* Left info */}
+      
                   <div>
                     <h3 className="text-lg font-semibold text-cyan-300">
                       {b.bus_name || b.bus}
@@ -131,7 +131,6 @@ const UserBookings = () => {
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="flex flex-wrap gap-3 items-center">
                     <span className="px-3 py-1 rounded-full text-xs border border-green-400/30 bg-green-500/10 text-green-300">
                       {b.status || "Confirmed"}
@@ -158,7 +157,7 @@ const UserBookings = () => {
           </div>
         )}
 
-        {/* Summary */}
+
         {!loading && bookings.length > 0 && (
           <div className="mt-10 backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-5 text-center">
             <p className="text-gray-400">

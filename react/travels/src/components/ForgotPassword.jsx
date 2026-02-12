@@ -25,17 +25,17 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black px-4">
-      {/* Soft ambient blobs */}
+    
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-cyan-500 rounded-full blur-3xl opacity-15"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-600 rounded-full blur-3xl opacity-15"></div>
       </div>
 
       <div className="relative w-full max-w-md backdrop-blur-2xl bg-white/5 border border-white/10 rounded-3xl shadow-[0_0_28px_rgba(34,211,238,0.2)] p-8">
-        {/* Top accent bar */}
+      
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-t-3xl" />
 
-        {/* Header */}
+    
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_20px_rgba(34,211,238,0.45)] flex items-center justify-center text-xl">
             🔐
@@ -49,7 +49,7 @@ const ForgotPassword = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email */}
+  
           <div>
             <label className="block text-sm text-gray-400 mb-1">
               Email address
@@ -67,7 +67,7 @@ const ForgotPassword = () => {
             </p>
           </div>
 
-          {/* Submit */}
+   
           <button
             disabled={loading}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold shadow hover:shadow-cyan-500/30 transition disabled:opacity-60"
@@ -75,7 +75,6 @@ const ForgotPassword = () => {
             {loading ? "Sending reset link…" : "Send reset link"}
           </button>
 
-          {/* Message */}
           {message && (
             <div
               className={`p-3 rounded-xl border ${
@@ -88,13 +87,13 @@ const ForgotPassword = () => {
             </div>
           )}
 
-          {/* Security note */}
+      
           <div className="mt-4 p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 text-sm">
             Reset links expire in 1 hour. Check spam if you don’t see the email.
           </div>
         </form>
 
-        {/* Footer */}
+     
         <div className="mt-8 text-center text-sm text-gray-400">
           Remembered your password?{" "}
           <Link to="/login" className="text-cyan-300 hover:underline">

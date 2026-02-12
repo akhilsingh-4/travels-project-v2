@@ -26,24 +26,22 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from django.http import HttpResponse
+import qrcode
+from django.shortcuts import render
 
 
 class BookingTicketView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, booking_id):
-        try:
-            booking = Booking.objects.select_related("bus", "seat").get(id=booking_id, user=request.user)
-        except Booking.DoesNotExist:
-            return Response({"error":"Booking not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+        booking = Booking.objects.select_related("bus", "seat", "user").get(id=booking_id, user=request.user)
+
         response = HttpResponse(content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="ticket_{booking.id}.pdf"'
 
         p = canvas.Canvas(response, pagesize=A4)
-        width, height= A4
+        width, height = A4
 
-          # Card background
         card_x = 40
         card_y = 120
         card_w = width - 80
@@ -52,16 +50,14 @@ class BookingTicketView(APIView):
         p.setFillColorRGB(0.05, 0.1, 0.15)
         p.roundRect(card_x, card_y, card_w, card_h, 20, fill=1)
 
-        # Header
         p.setFillColor(colors.white)
         p.setFont("Helvetica-Bold", 20)
-        p.drawString(card_x + 30, height - 100, "🚌 Travels App - Bus Ticket")
+        p.drawString(card_x + 30, height - 100, "Travels App - Bus Ticket")
 
         p.setFont("Helvetica", 11)
         p.setFillColor(colors.lightgrey)
         p.drawString(card_x + 30, height - 125, f"Booking ID: #{booking.id}")
 
-        # Divider
         p.setStrokeColor(colors.grey)
         p.line(card_x + 20, height - 145, card_x + card_w - 20, height - 145)
 
@@ -73,22 +69,28 @@ class BookingTicketView(APIView):
             p.setFillColor(colors.cyan)
             p.setFont("Helvetica-Bold", 11)
             p.drawString(card_x + 30, y, label)
-
             p.setFillColor(colors.white)
             p.setFont("Helvetica", 12)
-            p.drawString(card_x + 180, y, value)
+            p.drawString(card_x + 180, y, str(value))
             y -= gap
 
         field("Passenger", booking.user.username)
         field("Bus", booking.bus.bus_name)
         field("Route", f"{booking.bus.origin} → {booking.bus.destination}")
         field("Seat", booking.seat.seat_number)
-        field("Start Time", str(booking.bus.start_time))
-        field("Reach Time", str(booking.bus.reach_time))
+        field("Start Time", booking.bus.start_time)
+        field("Reach Time", booking.bus.reach_time)
         field("Price", f"₹ {booking.bus.price}")
         field("Booked At", booking.booking_time.strftime("%d %b %Y, %I:%M %p"))
 
-        # Footer
+        verify_url = f"http://localhost:8000/api/tickets/verify/{booking.id}/"
+        qr_img = qrcode.make(verify_url).convert("RGB")
+        p.drawInlineImage(qr_img, card_x + card_w - 150, card_y + 50, 110, 110)
+
+        p.setFillColor(colors.lightgrey)
+        p.setFont("Helvetica", 9)
+        p.drawString(card_x + card_w - 155, card_y + 40, "Scan to verify ticket")
+
         p.setFillColor(colors.lightgrey)
         p.setFont("Helvetica-Oblique", 10)
         p.drawString(card_x + 30, card_y + 30, "Show this ticket while boarding. Have a safe journey!")
@@ -97,6 +99,39 @@ class BookingTicketView(APIView):
         p.save()
         return response
 
+
+
+
+
+class TicketVerifyView(APIView):
+    permission_classes = []  
+
+    def get(self, request, booking_id):
+        try:
+            booking = Booking.objects.select_related("bus", "seat", "user").get(id=booking_id)
+        except Booking.DoesNotExist:
+            return Response(
+                {"valid": False, "message": "Ticket not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if not booking.seat.is_booked:
+            return Response(
+                {"valid": False, "message": "Ticket cancelled"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response({
+            "valid": True,
+            "message": "Ticket is valid",
+            "booking_id": booking.id,
+            "passenger": booking.user.username,
+            "bus": booking.bus.bus_name,
+            "route": f"{booking.bus.origin} → {booking.bus.destination}",
+            "seat": booking.seat.seat_number,
+            "start_time": str(booking.bus.start_time),
+            "reach_time": str(booking.bus.reach_time),
+        })
 
 
 class RegisterApiView(APIView):
@@ -339,40 +374,46 @@ class BookingView(APIView):
 
     def post(self, request):
         seat_id = request.data.get("seat")
-
         if not seat_id:
-            return Response({"error": "Seat ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Seat ID is required"}, status=400)
 
         with transaction.atomic():
             seat = Seat.objects.select_for_update().select_related("bus").get(id=seat_id)
+
             if seat.is_booked:
-                return Response({"error": "Seat already booked"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Seat already booked"}, status=400)
 
             booking = Booking.objects.create(user=request.user, bus=seat.bus, seat=seat)
             seat.is_booked = True
             seat.save()
 
-        if request.user.email:
-            try:
-                Util.send_templated_email(
-                    subject="Booking Confirmed - Travels App",
-                    template_name="emails/booking_confirmed.html",
-                    context={
-                        "username": request.user.username,
-                        "bus_name": seat.bus.bus_name,
-                        "origin": seat.bus.origin,
-                        "destination": seat.bus.destination,
-                        "seat_number": seat.seat_number,
-                        "price": seat.bus.price,
-                        "link": "http://localhost:5173/my-bookings",
-                    },
-                    to_email=request.user.email
-                )
-            except Exception as e:
-                print("Booking email failed:", e)
+        payment = Payment.objects.filter(
+            user=request.user,
+            status="SUCCESS",
+            booking__isnull=True
+        ).order_by("-created_at").first()
 
-        serializer = BookingSerializer(booking)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if payment:
+            payment.booking = booking
+            payment.save()
+
+        if request.user.email:
+            Util.send_templated_email(
+                subject="Booking Confirmed - Travels App",
+                template_name="emails/booking_confirmed.html",
+                context={
+                    "username": request.user.username,
+                    "bus_name": seat.bus.bus_name,
+                    "origin": seat.bus.origin,
+                    "destination": seat.bus.destination,
+                    "seat_number": seat.seat_number,
+                    "price": seat.bus.price,
+                    "link": "http://localhost:5173/my-bookings",
+                },
+                to_email=request.user.email
+            )
+
+        return Response(BookingSerializer(booking).data, status=201)
 
 
 class CancelBookingView(APIView):

@@ -18,7 +18,7 @@ const PaymentStatus = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white py-12 px-4">
       <div className="max-w-xl mx-auto">
 
-        {/* Loading */}
+      
         {loading && (
           <div className="text-center py-12 text-cyan-300">
             <div className="w-10 h-10 mx-auto border-4 border-cyan-300 border-t-transparent rounded-full animate-spin"></div>
@@ -26,7 +26,7 @@ const PaymentStatus = () => {
           </div>
         )}
 
-        {/* Not found */}
+    
         {!loading && !payment && (
           <div className="text-center py-16 text-gray-400">
             <p className="text-xl font-semibold">Payment not found</p>
@@ -40,7 +40,6 @@ const PaymentStatus = () => {
           </div>
         )}
 
-        {/* Status Card */}
         {!loading && payment && (
           <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-[0_0_36px_rgba(34,211,238,0.25)]">
             <div className="text-center mb-6">

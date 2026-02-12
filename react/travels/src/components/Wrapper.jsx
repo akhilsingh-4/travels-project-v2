@@ -21,7 +21,7 @@ const Wrapper = ({ token, handleLogout, children }) => {
   }, [token]);
 
   useEffect(() => {
-    setOpen(false); // close mobile menu on route change
+    setOpen(false); 
   }, [location.pathname]);
 
   const isActive = (path) =>
@@ -35,10 +35,10 @@ const Wrapper = ({ token, handleLogout, children }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
-      {/* Navbar */}
+  
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/5 border-b border-white/10 shadow-[0_0_24px_rgba(34,211,238,0.12)]">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          {/* Logo */}
+      
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500 text-black flex items-center justify-center shadow-[0_0_16px_rgba(168,85,247,0.5)] transition group-hover:shadow-[0_0_24px_rgba(34,211,238,0.6)]">
               🚍
@@ -48,7 +48,6 @@ const Wrapper = ({ token, handleLogout, children }) => {
             </span>
           </Link>
 
-          {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-2 text-sm">
             {token && (
               <>
@@ -127,7 +126,7 @@ const Wrapper = ({ token, handleLogout, children }) => {
             )}
           </div>
 
-          {/* Mobile Button */}
+    
           <button
             onClick={() => setOpen((o) => !o)}
             className="md:hidden text-xl px-3 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 transition"
@@ -136,7 +135,7 @@ const Wrapper = ({ token, handleLogout, children }) => {
           </button>
         </div>
 
-        {/* Mobile Menu */}
+ 
         {open && (
           <div className="md:hidden px-4 pb-4 space-y-2 backdrop-blur-xl bg-black/60 border-t border-white/10">
             {token && (
@@ -193,15 +192,13 @@ const Wrapper = ({ token, handleLogout, children }) => {
           </div>
         )}
       </nav>
-
-      {/* Content */}
       <main className="max-w-7xl mx-auto px-4 py-10">
         <div className="backdrop-blur-2xl bg-white/5 rounded-3xl border border-white/10 shadow-[0_0_24px_rgba(168,85,247,0.12)] p-6">
           {children}
         </div>
       </main>
 
-      {/* Footer */}
+
       <footer className="border-t border-white/10 backdrop-blur-xl bg-white/5 py-5 text-center text-sm text-gray-400">
         BusBooking © 2026 — Travel smart. Book with confidence.
       </footer>

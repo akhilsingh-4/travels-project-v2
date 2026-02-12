@@ -22,7 +22,6 @@ const MyPayments = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white py-12 px-4">
       <div className="max-w-5xl mx-auto">
 
-        {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-400">
             My Payments
@@ -30,7 +29,6 @@ const MyPayments = () => {
           <p className="text-gray-400 mt-2">All your transactions in one place</p>
         </div>
 
-        {/* Loading */}
         {loading && (
           <div className="text-center py-12 text-cyan-300">
             <div className="w-10 h-10 mx-auto border-4 border-cyan-300 border-t-transparent rounded-full animate-spin"></div>
@@ -38,7 +36,6 @@ const MyPayments = () => {
           </div>
         )}
 
-        {/* Empty */}
         {!loading && payments.length === 0 && (
           <div className="text-center py-16 text-gray-400">
             <p className="text-xl font-semibold">No payments found</p>
@@ -46,7 +43,7 @@ const MyPayments = () => {
           </div>
         )}
 
-        {/* Table Header */}
+      
         {!loading && payments.length > 0 && (
           <div className="hidden sm:grid grid-cols-5 gap-4 px-4 py-2 text-xs uppercase tracking-wide text-gray-400 border-b border-white/10 mb-3">
             <div>Order ID</div>
@@ -57,7 +54,6 @@ const MyPayments = () => {
           </div>
         )}
 
-        {/* Line-by-line rows */}
         <div className="divide-y divide-white/10">
           {payments.map((p) => (
             <div

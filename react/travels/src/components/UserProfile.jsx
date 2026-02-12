@@ -44,7 +44,7 @@ const UserProfile = () => {
         URL.revokeObjectURL(form.avatar_url);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
   }, []);
 
   const handleChange = (e) => {
@@ -115,7 +115,7 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white py-10 px-4">
       <div className="max-w-md mx-auto">
-        {/* Header */}
+     
         <div className="text-center mb-10">
           <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_24px_rgba(34,211,238,0.4)] flex items-center justify-center overflow-hidden">
             {form.avatar_url ? (
@@ -135,7 +135,7 @@ const UserProfile = () => {
           <p className="text-gray-400 mt-1">Manage your personal details</p>
         </div>
 
-        {/* Card */}
+   
         <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 shadow-[0_0_24px_rgba(168,85,247,0.15)]">
           {loading && (
             <div className="text-center py-6 text-cyan-300">
@@ -145,7 +145,7 @@ const UserProfile = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Avatar */}
+           
             <div>
               <label className="block text-sm text-gray-400 mb-2">
                 Profile Picture
@@ -162,7 +162,7 @@ const UserProfile = () => {
               />
             </div>
 
-            {/* Username */}
+        
             <div>
               <label className="block text-sm text-gray-400 mb-1">
                 Username
@@ -175,7 +175,7 @@ const UserProfile = () => {
               />
             </div>
 
-            {/* Email */}
+  
             <input
               name="email"
               type="email"
@@ -185,7 +185,7 @@ const UserProfile = () => {
               className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white"
             />
 
-            {/* Names */}
+   
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input
                 name="first_name"
@@ -203,7 +203,7 @@ const UserProfile = () => {
               />
             </div>
 
-            {/* Message */}
+      
             {message && (
               <div
                 className={`p-4 rounded-xl border ${
@@ -216,7 +216,7 @@ const UserProfile = () => {
               </div>
             )}
 
-            {/* Save */}
+        
             <button
               type="submit"
               disabled={loading}

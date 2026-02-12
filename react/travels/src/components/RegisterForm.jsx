@@ -26,17 +26,17 @@ const RegisterForm = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black px-4">
-      {/* Soft background glows */}
+    
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500 rounded-full blur-3xl opacity-10"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-10"></div>
       </div>
 
       <div className="relative w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-[0_0_32px_rgba(168,85,247,0.18)] p-8">
-        {/* Top accent */}
+    
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-t-3xl" />
 
-        {/* Header */}
+    
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_24px_rgba(34,211,238,0.4)] flex items-center justify-center text-xl">
             🚌
@@ -50,7 +50,7 @@ const RegisterForm = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Username */}
+          
           <div>
             <label className="block text-sm text-gray-400 mb-1">Username</label>
             <input
@@ -61,7 +61,7 @@ const RegisterForm = () => {
             />
           </div>
 
-          {/* Email */}
+
           <div>
             <label className="block text-sm text-gray-400 mb-1">Email</label>
             <input
@@ -73,7 +73,7 @@ const RegisterForm = () => {
             />
           </div>
 
-          {/* Password */}
+     
           <div>
             <label className="block text-sm text-gray-400 mb-1">Password</label>
             <input
@@ -85,7 +85,7 @@ const RegisterForm = () => {
             />
           </div>
 
-          {/* Submit */}
+       
           <button
             type="submit"
             disabled={loading}
@@ -94,7 +94,6 @@ const RegisterForm = () => {
             {loading ? "Creating account..." : "Create Account"}
           </button>
 
-          {/* Message */}
           {message && (
             <div
               className={`p-3 rounded-xl border ${
@@ -107,7 +106,7 @@ const RegisterForm = () => {
             </div>
           )}
 
-          {/* Footer */}
+        
           <div className="text-center text-sm text-gray-400 pt-4 border-t border-white/10">
             Already have an account?{" "}
             <Link to="/login" className="text-cyan-300 hover:underline">

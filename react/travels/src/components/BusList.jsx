@@ -39,7 +39,7 @@ const BusList = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white py-12 px-4">
       <div className="max-w-6xl mx-auto">
 
-        {/* Header */}
+
         <div className="text-center mb-10">
           <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-400">
             Available Buses
@@ -49,7 +49,7 @@ const BusList = () => {
           </p>
         </div>
 
-        {/* Filters */}
+
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 mb-6 border border-white/10 shadow-[0_0_24px_rgba(34,211,238,0.12)]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
@@ -67,7 +67,7 @@ const BusList = () => {
           </div>
         </div>
 
-        {/* Sort Buttons */}
+  
         {buses.length > 0 && (
           <div className="flex flex-wrap justify-between items-center mb-6 gap-3">
             <div className="text-sm text-gray-400">
@@ -98,7 +98,7 @@ const BusList = () => {
           </div>
         )}
 
-        {/* Loading */}
+        
         {loading && (
           <div className="text-center py-12 text-cyan-300">
             <div className="w-10 h-10 mx-auto border-4 border-cyan-300 border-t-transparent rounded-full animate-spin"></div>
@@ -106,7 +106,7 @@ const BusList = () => {
           </div>
         )}
 
-        {/* Empty */}
+ 
         {!loading && sortedBuses.length === 0 && (
           <div className="text-center py-16 text-gray-400">
             <p className="text-xl font-semibold">No routes found</p>
@@ -114,7 +114,7 @@ const BusList = () => {
           </div>
         )}
 
-        {/* Bus Cards */}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {sortedBuses.map((bus) => (
             <div
@@ -135,7 +135,7 @@ const BusList = () => {
                 </span>
               </div>
 
-              {/* Route preview chips */}
+  
               <div className="flex flex-wrap gap-2 mb-4">
                 <span className="px-3 py-1 rounded-full text-xs bg-cyan-500/10 text-cyan-300 border border-cyan-400/30">
                   {bus.origin}
