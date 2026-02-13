@@ -33,6 +33,18 @@ const UserBookings = () => {
     }
   };
 
+  const refundTicket = async (bookingId) => {
+  if (!window.confirm("Refund this ticket? This action cannot be undone.")) return;
+
+  try {
+    await api.post(`/api/bookings/${bookingId}/refund/`);
+    alert("Refund successful");
+    setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+  } catch {
+    alert("Refund failed");
+  }
+};
+
  const handlePrint = async (booking) => {
   try {
     const res = await api.get(`/api/bookings/${booking.id}/ticket/`, {
@@ -136,6 +148,7 @@ const UserBookings = () => {
                       {b.status || "Confirmed"}
                     </span>
 
+                    
                     <button
                       disabled={actionId === b.id}
                       onClick={() => cancelBooking(b.id)}
@@ -149,6 +162,13 @@ const UserBookings = () => {
                       className="px-4 py-2 rounded-xl border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/10 transition"
                     >
                       Print Ticket
+                    </button>
+
+                    <button
+                      onClick={() => refundTicket(b.id)}
+                      className="px-4 py-2 rounded-xl border border-purple-400/30 text-purple-300 hover:bg-purple-500/10 transition"
+                    >
+                    Refund
                     </button>
                   </div>
                 </div>

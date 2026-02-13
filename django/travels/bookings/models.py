@@ -67,3 +67,19 @@ class Profile(models.Model):
 
 
 
+class Ticket(models.Model):
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="ticket")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("ACTIVE", "ACTIVE"),
+            ("USED", "USED"),
+            ("REFUNDED", "REFUNDED"),
+        ],
+        default="ACTIVE"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__ (self):
+        return f"Ticket #{self.id} - {self.user.username} - {self.status}"

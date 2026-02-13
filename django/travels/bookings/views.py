@@ -14,7 +14,7 @@ from django.utils.encoding import force_str
 from .payments import client
 from django.conf import settings
 from .utils import Util
-from .models import Bus, Seat, Booking, Payment
+from .models import Bus, Seat, Booking, Payment, Ticket
 from .serializers import (
     UserRegisterSerializer,
     BusSearializers,
@@ -36,8 +36,13 @@ class BookingTicketView(APIView):
     def get(self, request, booking_id):
         booking = Booking.objects.select_related("bus", "seat", "user").get(id=booking_id, user=request.user)
 
+        ticket, _ = Ticket.objects.get_or_create(
+            booking=booking,
+            defaults={"user": request.user}
+        )
+
         response = HttpResponse(content_type="application/pdf")
-        response["Content-Disposition"] = f'attachment; filename="ticket_{booking.id}.pdf"'
+        response["Content-Disposition"] = f'attachment; filename="ticket_{ticket.id}.pdf"'
 
         p = canvas.Canvas(response, pagesize=A4)
         width, height = A4
@@ -56,7 +61,7 @@ class BookingTicketView(APIView):
 
         p.setFont("Helvetica", 11)
         p.setFillColor(colors.lightgrey)
-        p.drawString(card_x + 30, height - 125, f"Booking ID: #{booking.id}")
+        p.drawString(card_x + 30, height - 125, f"Ticket ID: #{ticket.id}")
 
         p.setStrokeColor(colors.grey)
         p.line(card_x + 20, height - 145, card_x + card_w - 20, height - 145)
@@ -83,7 +88,7 @@ class BookingTicketView(APIView):
         field("Price", f"₹ {booking.bus.price}")
         field("Booked At", booking.booking_time.strftime("%d %b %Y, %I:%M %p"))
 
-        verify_url = f"http://localhost:8000/api/tickets/verify/{booking.id}/"
+        verify_url = f"http://localhost:8000/api/tickets/verify/{ticket.id}/"
         qr_img = qrcode.make(verify_url).convert("RGB")
         p.drawInlineImage(qr_img, card_x + card_w - 150, card_y + 50, 110, 110)
 
@@ -100,38 +105,79 @@ class BookingTicketView(APIView):
         return response
 
 
-
-
-
 class TicketVerifyView(APIView):
-    permission_classes = []  
+    permission_classes = []
 
-    def get(self, request, booking_id):
+    def get(self, request, ticket_id):
         try:
-            booking = Booking.objects.select_related("bus", "seat", "user").get(id=booking_id)
-        except Booking.DoesNotExist:
-            return Response(
-                {"valid": False, "message": "Ticket not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            ticket = Ticket.objects.select_related("booking", "booking__bus", "booking__seat", "user").get(id=ticket_id)
+        except Ticket.DoesNotExist:
+            return Response({"valid": False, "message": "Ticket not found"}, status=404)
 
-        if not booking.seat.is_booked:
-            return Response(
-                {"valid": False, "message": "Ticket cancelled"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if ticket.status == "REFUNDED":
+            return Response({"valid": False, "message": "Ticket refunded"}, status=400)
+
+        if ticket.status == "USED":
+            return Response({"valid": False, "message": "Ticket already used"}, status=400)
 
         return Response({
             "valid": True,
-            "message": "Ticket is valid",
-            "booking_id": booking.id,
-            "passenger": booking.user.username,
-            "bus": booking.bus.bus_name,
-            "route": f"{booking.bus.origin} → {booking.bus.destination}",
-            "seat": booking.seat.seat_number,
-            "start_time": str(booking.bus.start_time),
-            "reach_time": str(booking.bus.reach_time),
+            "ticket_id": ticket.id,
+            "passenger": ticket.user.username,
+            "bus": ticket.booking.bus.bus_name,
+            "route": f"{ticket.booking.bus.origin} → {ticket.booking.bus.destination}",
+            "seat": ticket.booking.seat.seat_number,
+            "start_time": str(ticket.booking.bus.start_time),
+            "reach_time": str(ticket.booking.bus.reach_time),
         })
+    
+
+class RefundTicketView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_id):
+        try:
+            booking = Booking.objects.get(id=booking_id, user=request.user)
+        except Booking.DoesNotExist:
+            return Response({"error": "Booking not found"}, status=404)
+
+        ticket, _ = Ticket.objects.get_or_create(
+            booking=booking,
+            defaults={"user": request.user}
+        )
+
+        if ticket.status == "REFUNDED":
+            return Response({"error": "Ticket already refunded"}, status=400)
+
+        payment = Payment.objects.filter(
+            user=request.user,
+            booking=booking,
+            status="SUCCESS"
+        ).first()
+
+        if not payment:
+            return Response({"error": "No successful payment found"}, status=400)
+
+        try:
+            client.payment.refund(payment.razorpay_payment_id)
+        except:
+            return Response({"error": "Refund failed"}, status=400)
+
+        ticket.status = "REFUNDED"
+        ticket.save()
+
+        payment.status = "REFUNDED"
+        payment.save()
+
+        seat = booking.seat
+        seat.is_booked = False
+        seat.save()
+
+        booking.delete()
+
+        return Response({"message": "Refund processed successfully"})
+
+
 
 
 class RegisterApiView(APIView):
