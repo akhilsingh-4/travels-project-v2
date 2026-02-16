@@ -29,6 +29,64 @@ from django.http import HttpResponse
 import qrcode
 from django.shortcuts import render
 
+from django.utils import timezone
+from datetime import timedelta
+
+from io import BytesIO
+
+
+def generate_ticket_pdf_bytes(ticket):
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    card_x = 40
+    card_y = 120
+    card_w = width - 80
+    card_h = height - 200
+
+    p.setFillColorRGB(0.05, 0.1, 0.15)
+    p.roundRect(card_x, card_y, card_w, card_h, 20, fill=1)
+
+    p.setFillColor(colors.white)
+    p.setFont("Helvetica-Bold", 20)
+    p.drawString(card_x + 30, height - 100, "Travels App - Bus Ticket")
+
+    p.setFont("Helvetica", 11)
+    p.setFillColor(colors.lightgrey)
+    p.drawString(card_x + 30, height - 125, f"Ticket ID: #{ticket.id}")
+
+    y = height - 180
+    gap = 28
+
+    def field(label, value):
+        nonlocal y
+        p.setFillColor(colors.cyan)
+        p.setFont("Helvetica-Bold", 11)
+        p.drawString(card_x + 30, y, label)
+        p.setFillColor(colors.white)
+        p.setFont("Helvetica", 12)
+        p.drawString(card_x + 180, y, str(value))
+        y -= gap
+
+    booking = ticket.booking
+
+    field("Passenger", booking.user.username)
+    field("Bus", booking.bus.bus_name)
+    field("Route", f"{booking.bus.origin} → {booking.bus.destination}")
+    field("Seat", booking.seat.seat_number)
+    field("Start Time", booking.bus.start_time)
+    field("Reach Time", booking.bus.reach_time)
+    field("Price", f"₹ {booking.bus.price}")
+    field("Booked At", booking.booking_time.strftime("%d %b %Y, %I:%M %p"))
+
+    p.showPage()
+    p.save()
+
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+    return pdf_bytes
+
 
 class BookingTicketView(APIView):
     permission_classes = [IsAuthenticated]
@@ -137,7 +195,10 @@ class RefundTicketView(APIView):
 
     def post(self, request, booking_id):
         try:
-            booking = Booking.objects.get(id=booking_id, user=request.user)
+            booking = Booking.objects.select_related("bus", "seat").get(
+                id=booking_id,
+                user=request.user
+            )
         except Booking.DoesNotExist:
             return Response({"error": "Booking not found"}, status=404)
 
@@ -160,22 +221,46 @@ class RefundTicketView(APIView):
 
         try:
             client.payment.refund(payment.razorpay_payment_id)
-        except:
-            return Response({"error": "Refund failed"}, status=400)
+        except Exception as e:
+            return Response({"error": f"Refund failed: {str(e)}"}, status=400)
 
-        ticket.status = "REFUNDED"
-        ticket.save()
+        with transaction.atomic():
+            ticket.status = "REFUNDED"
+            ticket.save()
 
-        payment.status = "REFUNDED"
-        payment.save()
+            payment.status = "REFUNDED"
+            payment.save()
 
-        seat = booking.seat
-        seat.is_booked = False
-        seat.save()
+            seat = booking.seat
+            seat.is_booked = False
+            seat.save()
 
-        booking.delete()
+            refund_amount = payment.amount / 100  # convert paise to INR
+
+            booking.delete()
+
+        # ✅ Send refund confirmation email
+        if request.user.email:
+            try:
+                Util.send_templated_email(
+                    subject="Refund Successful – Travels App",
+                    template_name="emails/refund_email.html",
+                    context={
+                        "username": request.user.username,
+                        "bus_name": booking.bus.bus_name,
+                        "origin": booking.bus.origin,
+                        "destination": booking.bus.destination,
+                        "seat_number": seat.seat_number,
+                        "amount": refund_amount,
+                        "booking_id": booking_id,
+                    },
+                    to_email=request.user.email,
+                )
+            except Exception as e:
+                print("Refund email failed:", e)
 
         return Response({"message": "Refund processed successfully"})
+
 
 
 
@@ -315,12 +400,41 @@ class CreatePaymentOrderView(APIView):
         if not seat_id:
             return Response({"error": "seat_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            seat = Seat.objects.select_related("bus").get(id=seat_id)
-        except Seat.DoesNotExist:
-            return Response({"error": "Invalid seat"}, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            try:
+                seat = (
+                    Seat.objects
+                    .select_for_update()
+                    .select_related("bus")
+                    .get(id=seat_id)
+                )
+            except Seat.DoesNotExist:
+                return Response({"error": "Invalid seat"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Already booked
+            if seat.is_booked:
+                return Response({"error": "Seat already booked"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check active hold
+            if seat.is_held and seat.hold_expires_at:
+                if seat.hold_expires_at > timezone.now():
+                    return Response(
+                        {"error": "Seat is temporarily held. Try again later."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                else:
+                    # Hold expired → release it
+                    seat.is_held = False
+                    seat.hold_expires_at = None
+                    seat.save()
+
+            # Hold seat
+            seat.is_held = True
+            seat.hold_expires_at = timezone.now() + timedelta(minutes=5)
+            seat.save()
 
         amount = int(seat.bus.price * 100)
+
         order = client.order.create({
             "amount": amount,
             "currency": "INR",
@@ -351,25 +465,100 @@ class VerifyPaymentView(APIView):
         signature = request.data.get("razorpay_signature")
         seat_id = request.data.get("seat_id")
 
-        if not payment_id or not order_id or not signature or not seat_id:
-            return Response({"error": "Missing payment details"}, status=status.HTTP_400_BAD_REQUEST)
-
+        # ✅ Signature verification safe handling
         try:
             client.utility.verify_payment_signature({
                 "razorpay_order_id": order_id,
                 "razorpay_payment_id": payment_id,
                 "razorpay_signature": signature,
             })
-        except:
-            return Response({"error": "Payment verification failed"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({"error": "Invalid payment signature"}, status=400)
 
-        payment = Payment.objects.get(razorpay_order_id=order_id, user=request.user)
-        payment.razorpay_payment_id = payment_id
-        payment.razorpay_signature = signature
-        payment.status = "SUCCESS"
-        payment.save()
+        with transaction.atomic():
+            try:
+                payment = Payment.objects.select_for_update().get(
+                    razorpay_order_id=order_id,
+                    user=request.user
+                )
+            except Payment.DoesNotExist:
+                return Response({"error": "Payment record not found"}, status=404)
 
-        return Response({"message": "Payment verified successfully"}, status=status.HTTP_200_OK)
+            try:
+                seat = (
+                    Seat.objects
+                    .select_for_update()
+                    .select_related("bus")
+                    .get(id=seat_id)
+                )
+            except Seat.DoesNotExist:
+                return Response({"error": "Seat not found"}, status=404)
+
+            # Seat already booked
+            if seat.is_booked:
+                return Response({"error": "Seat already booked"}, status=400)
+
+            # Hold expired check
+            if seat.hold_expires_at and seat.hold_expires_at < timezone.now():
+                seat.is_held = False
+                seat.hold_expires_at = None
+                seat.save()
+                return Response({"error": "Seat hold expired"}, status=400)
+
+            # Create booking
+            booking = Booking.objects.create(
+                user=request.user,
+                bus=seat.bus,
+                seat=seat
+            )
+
+            seat.is_booked = True
+            seat.is_held = False
+            seat.hold_expires_at = None
+            seat.save()
+
+            payment.razorpay_payment_id = payment_id
+            payment.razorpay_signature = signature
+            payment.status = "SUCCESS"
+            payment.booking = booking
+            payment.save()
+
+        # Create ticket
+        ticket, _ = Ticket.objects.get_or_create(
+            booking=booking,
+            defaults={"user": request.user}
+        )
+
+        pdf_bytes = generate_ticket_pdf_bytes(ticket)
+
+        if request.user.email:
+            Util.send_templated_email(
+                subject="Your Bus Ticket – Travels App",
+                template_name="emails/ticket_email.html",
+                context={
+                "username": request.user.username,
+                "ticket_id": ticket.id,
+                "bus_name": booking.bus.bus_name,
+                "origin": booking.bus.origin,
+                "destination": booking.bus.destination,
+                "seat_number": booking.seat.seat_number,
+                "start_time": booking.bus.start_time,
+                "reach_time": booking.bus.reach_time,
+},
+
+                to_email=request.user.email,
+                attachments=[{
+                    "filename": f"ticket_{ticket.id}.pdf",
+                    "content": pdf_bytes,
+                    "mimetype": "application/pdf",
+                }]
+            )
+
+        return Response({
+            "message": "Payment verified and booking confirmed",
+            "booking_id": booking.id
+        })
+
 
 
 class MyPaymentsView(APIView):
@@ -415,51 +604,51 @@ class BusDetailView(generics.RetrieveAPIView):
     serializer_class = BusSearializers
 
 
-class BookingView(APIView):
-    permission_classes = [IsAuthenticated]
+# class BookingView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        seat_id = request.data.get("seat")
-        if not seat_id:
-            return Response({"error": "Seat ID is required"}, status=400)
+#     def post(self, request):
+#         seat_id = request.data.get("seat")
+#         if not seat_id:
+#             return Response({"error": "Seat ID is required"}, status=400)
 
-        with transaction.atomic():
-            seat = Seat.objects.select_for_update().select_related("bus").get(id=seat_id)
+#         with transaction.atomic():
+#             seat = Seat.objects.select_for_update().select_related("bus").get(id=seat_id)
 
-            if seat.is_booked:
-                return Response({"error": "Seat already booked"}, status=400)
+#             if seat.is_booked:
+#                 return Response({"error": "Seat already booked"}, status=400)
 
-            booking = Booking.objects.create(user=request.user, bus=seat.bus, seat=seat)
-            seat.is_booked = True
-            seat.save()
+#             booking = Booking.objects.create(user=request.user, bus=seat.bus, seat=seat)
+#             seat.is_booked = True
+#             seat.save()
 
-        payment = Payment.objects.filter(
-            user=request.user,
-            status="SUCCESS",
-            booking__isnull=True
-        ).order_by("-created_at").first()
+#         payment = Payment.objects.filter(
+#             user=request.user,
+#             status="SUCCESS",
+#             booking__isnull=True
+#         ).order_by("-created_at").first()
 
-        if payment:
-            payment.booking = booking
-            payment.save()
+#         if payment:
+#             payment.booking = booking
+#             payment.save()
 
-        if request.user.email:
-            Util.send_templated_email(
-                subject="Booking Confirmed - Travels App",
-                template_name="emails/booking_confirmed.html",
-                context={
-                    "username": request.user.username,
-                    "bus_name": seat.bus.bus_name,
-                    "origin": seat.bus.origin,
-                    "destination": seat.bus.destination,
-                    "seat_number": seat.seat_number,
-                    "price": seat.bus.price,
-                    "link": "http://localhost:5173/my-bookings",
-                },
-                to_email=request.user.email
-            )
+#         if request.user.email:
+#             Util.send_templated_email(
+#                 subject="Booking Confirmed - Travels App",
+#                 template_name="emails/booking_confirmed.html",
+#                 context={
+#                     "username": request.user.username,
+#                     "bus_name": seat.bus.bus_name,
+#                     "origin": seat.bus.origin,
+#                     "destination": seat.bus.destination,
+#                     "seat_number": seat.seat_number,
+#                     "price": seat.bus.price,
+#                     "link": "http://localhost:5173/my-bookings",
+#                 },
+#                 to_email=request.user.email
+#             )
 
-        return Response(BookingSerializer(booking).data, status=201)
+#         return Response(BookingSerializer(booking).data, status=201)
 
 
 class CancelBookingView(APIView):

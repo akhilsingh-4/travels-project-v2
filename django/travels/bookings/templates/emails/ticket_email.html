@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; background-color:#f4f4f4; padding:20px;">
+    
+    <div style="max-width:600px; margin:auto; background:white; padding:20px; border-radius:8px;">
+        
+        <h2 style="color:#111;">Hi {{ username }},</h2>
+
+        <p>Your bus ticket is attached as a PDF.</p>
+
+        <hr>
+
+        <p><strong>Bus:</strong> {{ bus_name }}</p>
+        <p><strong>Route:</strong> {{ origin }} → {{ destination }}</p>
+        <p><strong>Seat:</strong> {{ seat_number }}</p>
+        <p><strong>Departure:</strong> {{ start_time }}</p>
+        <p><strong>Arrival:</strong> {{ reach_time }}</p>
+        <p><strong>Ticket ID:</strong> #{{ ticket_id }}</p>
+
+        <hr>
+
+        <p>Please show this ticket while boarding.</p>
+
+        <p>Safe travels 🚌</p>
+
+        <br>
+
+        <p style="font-size:12px; color:gray;">
+            Travels App Team
+        </p>
+
+    </div>
+
+</body>
+</html>

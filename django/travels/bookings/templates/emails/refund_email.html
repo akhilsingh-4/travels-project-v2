@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; background:#f4f4f4; padding:20px;">
+
+<div style="max-width:600px; margin:auto; background:white; padding:20px; border-radius:8px;">
+
+    <h2>Hello {{ username }},</h2>
+
+    <p>Your ticket has been successfully refunded.</p>
+
+    <hr>
+
+    <p><strong>Bus:</strong> {{ bus_name }}</p>
+    <p><strong>Route:</strong> {{ origin }} → {{ destination }}</p>
+    <p><strong>Seat:</strong> {{ seat_number }}</p>
+    <p><strong>Booking ID:</strong> #{{ booking_id }}</p>
+    <p><strong>Refund Amount:</strong> ₹{{ amount }}</p>
+
+    <hr>
+
+    <p>The refund will reflect in your original payment method within 5–7 business days.</p>
+
+    <p>If you have any questions, please contact support.</p>
+
+    <br>
+
+    <p>Thank you for choosing Travels App.</p>
+    <p>Safe travels in the future 🚌</p>
+
+</div>
+
+</body>
+</html>

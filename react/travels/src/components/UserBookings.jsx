@@ -13,6 +13,8 @@ const UserBookings = () => {
       try {
         const res = await api.get("/api/my/bookings/");
         setBookings(res.data);
+      } catch {
+        alert("Failed to load bookings");
       } finally {
         setLoading(false);
       }
@@ -20,50 +22,43 @@ const UserBookings = () => {
     fetchBookings();
   }, []);
 
-  const cancelBooking = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+  const refundTicket = async (bookingId) => {
+    if (!window.confirm("Refund this ticket? This action cannot be undone.")) return;
+
     try {
-      setActionId(id);
-      await api.post("/api/bookings/cancel/", { booking_id: id });
-      setBookings((prev) => prev.filter((b) => b.id !== id));
-    } catch {
-      alert("Failed to cancel booking. Please try again.");
+      setActionId(bookingId);
+      await api.post(`/api/bookings/${bookingId}/refund/`);
+      alert("Refund successful");
+      setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+    } catch (err) {
+      const msg =
+        err?.response?.data?.error ||
+        "Refund failed. Please try again.";
+      alert(msg);
     } finally {
       setActionId(null);
     }
   };
 
-  const refundTicket = async (bookingId) => {
-  if (!window.confirm("Refund this ticket? This action cannot be undone.")) return;
+  const handlePrint = async (booking) => {
+    try {
+      const res = await api.get(`/api/bookings/${booking.id}/ticket/`, {
+        responseType: "blob",
+      });
 
-  try {
-    await api.post(`/api/bookings/${bookingId}/refund/`);
-    alert("Refund successful");
-    setBookings((prev) => prev.filter((b) => b.id !== bookingId));
-  } catch {
-    alert("Refund failed");
-  }
-};
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
 
- const handlePrint = async (booking) => {
-  try {
-    const res = await api.get(`/api/bookings/${booking.id}/ticket/`, {
-      responseType: "blob",
-    });
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ticket_${booking.id}.pdf`;
+      a.click();
 
-    const blob = new Blob([res.data], { type: "application/pdf" });
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `ticket_${booking.id}.pdf`;
-    a.click();
-
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    alert("Failed to download ticket.");
-  }
-};
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Failed to download ticket.");
+    }
+  };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return null;
@@ -84,14 +79,12 @@ const UserBookings = () => {
           <p className="text-gray-400 mt-1">View and manage your reservations</p>
         </div>
 
-
         {loading && (
           <div className="text-center py-16 text-cyan-300">
             <div className="w-10 h-10 mx-auto border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-4">Loading bookings…</p>
           </div>
         )}
-
 
         {!loading && bookings.length === 0 && (
           <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-10 text-center max-w-md mx-auto">
@@ -111,7 +104,6 @@ const UserBookings = () => {
           </div>
         )}
 
-
         {!loading && bookings.length > 0 && (
           <div className="space-y-5">
             {bookings.map((b) => (
@@ -120,10 +112,9 @@ const UserBookings = () => {
                 className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 transition"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      
                   <div>
                     <h3 className="text-lg font-semibold text-cyan-300">
-                      {b.bus_name || b.bus}
+                      {b.bus?.bus_name || b.bus_name || "Bus"}
                     </h3>
 
                     {b.origin && b.destination && (
@@ -133,11 +124,11 @@ const UserBookings = () => {
                     )}
 
                     <div className="mt-2 text-sm text-gray-400 space-y-1">
-                      <p>Seat: <span className="text-white">{b.seat}</span></p>
+                      <p>Seat: <span className="text-white">{b.seat?.seat_number || b.seat}</span></p>
                       <p>Booking ID: <span className="text-white">#{b.id}</span></p>
                       <p>
-                        {formatDate(b.created_at)
-                          ? `Booked on ${formatDate(b.created_at)}`
+                        {b.booking_time
+                          ? `Booked on ${formatDate(b.booking_time)}`
                           : "Booking confirmed"}
                       </p>
                     </div>
@@ -145,30 +136,22 @@ const UserBookings = () => {
 
                   <div className="flex flex-wrap gap-3 items-center">
                     <span className="px-3 py-1 rounded-full text-xs border border-green-400/30 bg-green-500/10 text-green-300">
-                      {b.status || "Confirmed"}
+                      Confirmed
                     </span>
-
-                    
-                    <button
-                      disabled={actionId === b.id}
-                      onClick={() => cancelBooking(b.id)}
-                      className="px-4 py-2 rounded-xl border border-red-400/30 text-red-300 hover:bg-red-500/10 transition disabled:opacity-50"
-                    >
-                      {actionId === b.id ? "Cancelling..." : "Cancel"}
-                    </button>
 
                     <button
                       onClick={() => handlePrint(b)}
                       className="px-4 py-2 rounded-xl border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/10 transition"
                     >
-                      Print Ticket
+                      Download Ticket
                     </button>
 
                     <button
+                      disabled={actionId === b.id}
                       onClick={() => refundTicket(b.id)}
-                      className="px-4 py-2 rounded-xl border border-purple-400/30 text-purple-300 hover:bg-purple-500/10 transition"
+                      className="px-4 py-2 rounded-xl border border-purple-400/30 text-purple-300 hover:bg-purple-500/10 transition disabled:opacity-50"
                     >
-                    Refund
+                      {actionId === b.id ? "Refunding..." : "Refund"}
                     </button>
                   </div>
                 </div>
@@ -176,7 +159,6 @@ const UserBookings = () => {
             ))}
           </div>
         )}
-
 
         {!loading && bookings.length > 0 && (
           <div className="mt-10 backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-5 text-center">

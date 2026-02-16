@@ -33,54 +33,60 @@ const BusSeats = () => {
     });
 
   const handlePayAndBook = async (seatId) => {
-    try {
-      const ok = await loadRazorpay();
-      if (!ok) return alert("Failed to load payment gateway");
+  try {
+    const ok = await loadRazorpay();
+    if (!ok) return alert("Failed to load payment gateway");
 
-      const orderRes = await api.post("/api/payments/create-order/", {
-        seat_id: seatId,
-      });
+    const orderRes = await api.post("/api/payments/create-order/", {
+      seat_id: seatId,
+    });
 
-      const { order_id, amount, currency, key } = orderRes.data;
+    const { order_id, amount, currency, key } = orderRes.data;
 
-      const options = {
-        key,
-        amount,
-        currency,
-        name: "Travels App",
-        description: "Bus Seat Booking",
-        order_id,
-        handler: async function (response) {
-          try {
-            await api.post("/api/payments/verify/", {
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature,
-              seat_id: seatId,
-            });
+    const options = {
+      key,
+      amount,
+      currency,
+      name: "Travels App",
+      description: "Bus Seat Booking",
+      order_id,
+      handler: async function (response) {
+  try {
+    await api.post("/api/payments/verify/", {
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_signature: response.razorpay_signature,
+      seat_id: seatId,
+    });
 
-            await api.post("/api/booking/", { seat: seatId });
+    setSeats((prev) =>
+      prev.map((s) =>
+        s.id === seatId ? { ...s, is_booked: true } : s
+      )
+    );
 
-            setSeats((prev) =>
-              prev.map((s) =>
-                s.id === seatId ? { ...s, is_booked: true } : s
-              )
-            );
+    alert("Payment successful. Your seat is confirmed.");
+    navigate("/my-bookings");
+  } catch (err) {
+    const msg =
+      err?.response?.data?.error ||
+      "Payment verification failed. Please try again.";
+    alert(msg);
+  }
+},
 
-            alert("Payment successful. Your seat is confirmed.");
-          } catch {
-            alert("Payment verification failed. Please try again.");
-          }
-        },
-        theme: { color: "#22d3ee" },
-      };
+      theme: { color: "#22d3ee" },
+    };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch {
-      navigate("/login");
-    }
-  };
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  } catch (err) {
+    const msg =
+      err?.response?.data?.error ||
+      "Seat is temporarily unavailable. Please try another seat.";
+    alert(msg);
+  }
+};
 
   const rows = [];
   for (let i = 0; i < seats.length; i += 4) rows.push(seats.slice(i, i + 4));

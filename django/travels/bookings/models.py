@@ -20,6 +20,8 @@ class Seat(models.Model):
     bus = models.ForeignKey('Bus', on_delete=models.CASCADE, related_name='seats')
     seat_number = models.CharField(max_length=10)
     is_booked = models.BooleanField(default=False)
+    is_held = models.BooleanField(default=False)
+    hold_expires_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.bus} {self.seat_number} "
