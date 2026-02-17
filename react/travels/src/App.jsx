@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
-import LoginForm from "./components/LoginForm";
-import RegisterForm from "./components/RegisterForm";
-import BusList from "./components/BusList";
+import LoginForm from "./pages/LoginForm";
+import RegisterForm from "./pages/RegisterForm";
 import BusSeats from "./components/BusSeats";
-import UserBookings from "./components/UserBookings";
+import BusList from "./components/BusList";
+import UserBookings from "./pages/UserBookings";
 import Wrapper from "./components/Wrapper";
-import UserProfile from "./components/UserProfile";
-import ResetPassword from "./components/ResetPassword";
-import ForgotPassword from "./components/ForgotPassword";
-import MyPayments from "./components/MyPayments";
-import PaymentStatus from "./components/PaymentStatus";
+import UserProfile from "./pages/UserProfile";
+import ForgotPassword from "./pages/ForgotPassword";
+import MyPayments from "./pages/MyPayments";
+import PaymentStatus from "./pages/PaymentStatus";
+import ResetPassword from "./pages/ResetPassword";
+
+import AdminLayout from "./admin/AdminLayout";
+import ManageBuses from "./admin/pages/ManageBuses";
+import AdminRoute from "./routes/AdminRoute";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("access"));
@@ -25,6 +29,7 @@ const App = () => {
     setToken(null);
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
+    localStorage.removeItem("is_admin");
   };
 
   return (
@@ -40,6 +45,18 @@ const App = () => {
         <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
         <Route path="/my-payments" element={<MyPayments />} />
         <Route path="/payment-status/:orderId" element={<PaymentStatus />} />
+
+        {/* ✅ Admin */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+          <Route path="buses" element={<ManageBuses />} />
+        </Route>
       </Routes>
     </Wrapper>
   );
