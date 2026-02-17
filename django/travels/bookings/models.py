@@ -12,8 +12,11 @@ class Bus(models.Model):
     no_of_seats = models.PositiveBigIntegerField()
     price = models.DecimalField(max_digits=8, decimal_places=2)
 
+    is_active = models.BooleanField(default=True)   
+    image = models.ImageField(upload_to="buses/", null=True, blank=True)  
+
     def __str__(self):
-        return f"{self.bus_name} {self.bus_name} {self.origin} {self.destination}"
+        return f"{self.bus_name} {self.origin} → {self.destination}"
 
 
 class Seat(models.Model):

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterApiView, RefundTicketView, TicketVerifyView, BookingTicketView, LoginView,PaymentStatusView, MyPaymentsView, BusDetailView, BusListCreateApiView,VerifyPaymentView, CreatePaymentOrderView, RequestPasswordResetView, ConfirmPasswordResetView, UserProfileView,MyBookingsView,CancelBookingView
+from .views import RegisterApiView,AdminBusListCreateView, AdminBusDetailView, RefundTicketView, TicketVerifyView, BookingTicketView, LoginView,PaymentStatusView, MyPaymentsView, BusDetailView, BusListCreateApiView,VerifyPaymentView, CreatePaymentOrderView, RequestPasswordResetView, ConfirmPasswordResetView, UserProfileView,MyBookingsView,CancelBookingView
 
 urlpatterns = [
     path('buses/', BusListCreateApiView.as_view(), name='buslist'),
@@ -20,6 +20,8 @@ urlpatterns = [
     path("tickets/verify/<int:ticket_id>/", TicketVerifyView.as_view()),
     path("bookings/<int:booking_id>/refund/", RefundTicketView.as_view()),
 
+    path('admin/buses/', AdminBusListCreateView.as_view(), name='admin-bus-list-create'),
+    path('admin/buses/<int:pk>/', AdminBusDetailView.as_view(), name='admin-bus-detail'),
 
 
 ]

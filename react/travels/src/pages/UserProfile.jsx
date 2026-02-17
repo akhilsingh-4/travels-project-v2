@@ -44,7 +44,6 @@ const UserProfile = () => {
         URL.revokeObjectURL(form.avatar_url);
       }
     };
- 
   }, []);
 
   const handleChange = (e) => {
@@ -81,16 +80,9 @@ const UserProfile = () => {
       formData.append("email", form.email);
       formData.append("first_name", form.first_name);
       formData.append("last_name", form.last_name);
+      if (form.avatar) formData.append("avatar", form.avatar);
 
-      if (form.avatar) {
-        formData.append("avatar", form.avatar);
-      }
-
-      await api.put("/api/profile/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await api.put("/api/profile/", formData);
 
       const res = await api.get("/api/profile/");
       setForm({
@@ -113,41 +105,48 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white py-10 px-4">
-      <div className="max-w-md mx-auto">
-     
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_24px_rgba(34,211,238,0.4)] flex items-center justify-center overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white py-16 px-4">
+      <div className="max-w-lg mx-auto">
+
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="relative w-24 h-24 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_30px_rgba(34,211,238,0.45)] overflow-hidden group">
             {form.avatar_url ? (
               <img
                 src={form.avatar_url}
                 alt="avatar"
-                className="w-full h-full object-cover rounded-xl"
+                className="w-full h-full object-cover transition group-hover:scale-105"
               />
             ) : (
-              <span className="text-2xl">👤</span>
+              <span className="text-3xl flex items-center justify-center h-full">👤</span>
             )}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs text-gray-200">
+              Change
+            </div>
           </div>
 
-          <h1 className="text-3xl font-semibold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
             Profile
           </h1>
-          <p className="text-gray-400 mt-1">Manage your personal details</p>
+          <p className="text-gray-400 mt-1">
+            Manage your personal details
+          </p>
         </div>
 
-   
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 shadow-[0_0_24px_rgba(168,85,247,0.15)]">
+        {/* Card */}
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 md:p-7 shadow-[0_0_30px_rgba(168,85,247,0.18)]">
           {loading && (
             <div className="text-center py-6 text-cyan-300">
               <div className="w-8 h-8 mx-auto border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-2">Loading profile…</p>
+              <p className="mt-2 text-sm">Loading profile…</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-           
+
+            {/* Avatar Upload */}
             <div>
-              <label className="block text-sm text-gray-400 mb-2">
+              <label className="block text-xs text-gray-400 mb-2">
                 Profile Picture
               </label>
               <input
@@ -155,58 +154,57 @@ const UserProfile = () => {
                 accept="image/*"
                 onChange={handleFileChange}
                 className="w-full text-sm text-gray-300
-                file:mr-4 file:py-2 file:px-4
+                file:mr-4 file:py-2.5 file:px-4
                 file:rounded-xl file:border-0
                 file:bg-cyan-500 file:text-black
                 hover:file:bg-cyan-400 transition"
               />
             </div>
 
-        
+            {/* Username */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                Username
-              </label>
+              <label className="block text-xs text-gray-400 mb-1">Username</label>
               <input
-                name="username"
                 value={form.username}
                 disabled
-                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-gray-400 cursor-not-allowed"
+                className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-gray-500 cursor-not-allowed"
               />
             </div>
 
-  
-            <input
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Email"
-              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white"
-            />
+            {/* Email */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Email</label>
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white focus:border-cyan-400/40 focus:ring-2 focus:ring-cyan-400/20 outline-none"
+              />
+            </div>
 
-   
+            {/* Names */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input
                 name="first_name"
                 value={form.first_name}
                 onChange={handleChange}
                 placeholder="First name"
-                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white"
+                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white focus:border-cyan-400/40 focus:ring-2 focus:ring-cyan-400/20 outline-none"
               />
               <input
                 name="last_name"
                 value={form.last_name}
                 onChange={handleChange}
                 placeholder="Last name"
-                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white"
+                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white focus:border-purple-400/40 focus:ring-2 focus:ring-purple-400/20 outline-none"
               />
             </div>
 
-      
+            {/* Message */}
             {message && (
               <div
-                className={`p-4 rounded-xl border ${
+                className={`p-3 rounded-xl border text-sm ${
                   message.toLowerCase().includes("success")
                     ? "border-green-400/30 bg-green-500/10 text-green-300"
                     : "border-red-400/30 bg-red-500/10 text-red-300"
@@ -216,11 +214,11 @@ const UserProfile = () => {
               </div>
             )}
 
-        
+            {/* Save */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold shadow hover:shadow-cyan-500/30 transition disabled:opacity-60"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold shadow hover:shadow-cyan-500/40 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? "Saving changes..." : "Save changes"}
             </button>

@@ -55,6 +55,7 @@ class SeatSerializer(serializers.ModelSerializer):
 
 class BusSearializers(serializers.ModelSerializer):
     seats = SeatSerializer(many=True, read_only=True)
+    image = serializers.ImageField(use_url=True, required=False)
 
     class Meta:
         model = Bus
@@ -74,4 +75,11 @@ class BookingSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
+        fields = "__all__"
+
+
+
+class AdminBusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bus
         fields = "__all__"

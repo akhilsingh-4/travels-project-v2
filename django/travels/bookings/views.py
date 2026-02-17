@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
@@ -20,7 +21,8 @@ from .serializers import (
     BusSearializers,
     BookingSerializer,
     UserProfileSerializer,
-    PaymentSerializer
+    PaymentSerializer,
+    AdminBusSerializer
 )
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -33,6 +35,11 @@ from django.utils import timezone
 from datetime import timedelta
 
 from io import BytesIO
+
+from .permissions import IsAdmin
+
+
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 def generate_ticket_pdf_bytes(ticket):
@@ -235,11 +242,11 @@ class RefundTicketView(APIView):
             seat.is_booked = False
             seat.save()
 
-            refund_amount = payment.amount / 100  # convert paise to INR
+            refund_amount = payment.amount / 100
 
             booking.delete()
 
-        # ✅ Send refund confirmation email
+     
         if request.user.email:
             try:
                 Util.send_templated_email(
@@ -310,7 +317,8 @@ class LoginView(APIView):
             {
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
-                "user_id": user.id
+                "user_id": user.id,
+                "is_admin": user.is_staff,
             },
             status=status.HTTP_200_OK
         )
@@ -411,11 +419,10 @@ class CreatePaymentOrderView(APIView):
             except Seat.DoesNotExist:
                 return Response({"error": "Invalid seat"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Already booked
+  
             if seat.is_booked:
                 return Response({"error": "Seat already booked"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check active hold
             if seat.is_held and seat.hold_expires_at:
                 if seat.hold_expires_at > timezone.now():
                     return Response(
@@ -423,12 +430,11 @@ class CreatePaymentOrderView(APIView):
                         status=status.HTTP_400_BAD_REQUEST
                     )
                 else:
-                    # Hold expired → release it
+     
                     seat.is_held = False
                     seat.hold_expires_at = None
                     seat.save()
 
-            # Hold seat
             seat.is_held = True
             seat.hold_expires_at = timezone.now() + timedelta(minutes=5)
             seat.save()
@@ -465,7 +471,7 @@ class VerifyPaymentView(APIView):
         signature = request.data.get("razorpay_signature")
         seat_id = request.data.get("seat_id")
 
-        # ✅ Signature verification safe handling
+ 
         try:
             client.utility.verify_payment_signature({
                 "razorpay_order_id": order_id,
@@ -494,18 +500,18 @@ class VerifyPaymentView(APIView):
             except Seat.DoesNotExist:
                 return Response({"error": "Seat not found"}, status=404)
 
-            # Seat already booked
+        
             if seat.is_booked:
                 return Response({"error": "Seat already booked"}, status=400)
 
-            # Hold expired check
+
             if seat.hold_expires_at and seat.hold_expires_at < timezone.now():
                 seat.is_held = False
                 seat.hold_expires_at = None
                 seat.save()
                 return Response({"error": "Seat hold expired"}, status=400)
 
-            # Create booking
+     
             booking = Booking.objects.create(
                 user=request.user,
                 bus=seat.bus,
@@ -523,7 +529,7 @@ class VerifyPaymentView(APIView):
             payment.booking = booking
             payment.save()
 
-        # Create ticket
+   
         ticket, _ = Ticket.objects.get_or_create(
             booking=booking,
             defaults={"user": request.user}
@@ -587,7 +593,7 @@ class BusListCreateApiView(generics.ListAPIView):
     serializer_class = BusSearializers
 
     def get_queryset(self):
-        queryset = Bus.objects.all()
+        queryset = Bus.objects.filter(is_active=True)
         origin = self.request.query_params.get("origin")
         destination = self.request.query_params.get("destination")
 
@@ -695,3 +701,46 @@ class MyBookingsView(APIView):
         bookings = Booking.objects.filter(user=request.user)
         serializer = BookingSerializer(bookings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AdminBusListCreateView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get(self, request):
+        buses = Bus.objects.all().order_by("-id")
+        serializer = AdminBusSerializer(buses, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = AdminBusSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AdminBusDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def put(self, request, pk):
+        try:
+            bus = Bus.objects.get(pk=pk)
+        except Bus.DoesNotExist:
+            return Response({"error": "Bus not found"}, status=404)
+
+        serializer = AdminBusSerializer(bus, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        try:
+            bus = Bus.objects.get(pk=pk)
+        except Bus.DoesNotExist:
+            return Response({"error": "Bus not found"}, status=404)
+
+        bus.delete()
+        return Response({"message": "Bus deleted successfully"})
