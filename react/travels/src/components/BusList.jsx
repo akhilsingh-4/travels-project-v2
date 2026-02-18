@@ -18,11 +18,11 @@ const BusList = () => {
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
+  const [journeyDate, setJourneyDate] = useState("");   
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch buses
   const fetchBuses = async () => {
     setLoading(true);
     try {
@@ -43,7 +43,7 @@ const BusList = () => {
     fetchBuses();
   }, [origin, destination]);
 
-  // Load recently viewed from localStorage
+
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("recent_buses") || "[]");
     setRecentlyViewed(stored);
@@ -56,7 +56,6 @@ const BusList = () => {
     return arr;
   }, [buses, sortBy]);
 
-  // Trending routes
   const trendingRoutes = useMemo(() => {
     const set = new Set();
     buses.forEach((b) => set.add(`${b.origin} → ${b.destination}`));
@@ -64,18 +63,36 @@ const BusList = () => {
   }, [buses]);
 
   const handleViewSeats = (bus) => {
+    if (!journeyDate) {
+      alert("Please select journey date");  
+      return;
+    }
+
     const prev = JSON.parse(localStorage.getItem("recent_buses") || "[]");
-    const updated = [bus, ...prev.filter((b) => b.id !== bus.id)].slice(0, 4);
+
+    const minimalBus = {
+      id: bus.id,
+      bus_name: bus.bus_name,
+      origin: bus.origin,
+      destination: bus.destination,
+    };
+
+    const updated = [
+      minimalBus,
+      ...prev.filter((b) => b.id !== bus.id),
+    ].slice(0, 4);
+
     localStorage.setItem("recent_buses", JSON.stringify(updated));
     setRecentlyViewed(updated);
-    navigate(`/bus/${bus.id}`);
+
+    navigate(`/bus/${bus.id}?date=${journeyDate}`);  
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white">
       <div className="mx-auto max-w-7xl px-4 py-12 space-y-20">
 
-        {/* HERO */}
+     
         <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
@@ -111,7 +128,7 @@ const BusList = () => {
               </button>
             </div>
 
-            {/* Stats */}
+     
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
                 <p className="text-lg font-semibold text-cyan-300">{buses.length}+</p>
@@ -128,7 +145,6 @@ const BusList = () => {
             </div>
           </div>
 
-          {/* Trending Routes */}
           <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
             <p className="text-sm text-gray-400 mb-3">🔥 Trending Routes</p>
             <div className="space-y-2">
@@ -150,7 +166,7 @@ const BusList = () => {
           </div>
         </section>
 
-        {/* RECENTLY VIEWED */}
+      
         {recentlyViewed.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-xl font-semibold text-cyan-300">Recently Viewed</h2>
@@ -171,11 +187,11 @@ const BusList = () => {
           </section>
         )}
 
-        {/* SEARCH + LIST */}
+      
         <section id="search-section" className="space-y-10">
-          {/* Filters */}
+       
           <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">   
               <input
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white"
                 placeholder="From (Origin)"
@@ -188,10 +204,17 @@ const BusList = () => {
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
               />
+             <input
+              type="date"
+              min={new Date().toISOString().split("T")[0]}
+              className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white [color-scheme:dark]"
+              value={journeyDate}
+              onChange={(e) => setJourneyDate(e.target.value)}
+            />
             </div>
           </div>
 
-          {/* Cards */}
+       
           {loading ? (
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
               {[1, 2, 3].map((i) => (
@@ -221,6 +244,9 @@ const BusList = () => {
 
                   <div className="flex flex-1 flex-col p-6 space-y-4">
                     <h3 className="text-lg font-semibold">{bus.bus_name}</h3>
+                    <p className="text-xs text-gray-400">
+                      {bus.origin} → {bus.destination}
+                    </p>
 
                     <button
                       onClick={() => handleViewSeats(bus)}

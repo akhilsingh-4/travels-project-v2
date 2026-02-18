@@ -14,7 +14,11 @@ import ResetPassword from "./pages/ResetPassword";
 
 import AdminLayout from "./admin/AdminLayout";
 import ManageBuses from "./admin/pages/ManageBuses";
+import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminBookings from "./admin/pages/AdminBookings"; 
+import AdminScanTicket from "./admin/pages/AdminScanTicket";
 import AdminRoute from "./routes/AdminRoute";
+
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("access"));
@@ -46,7 +50,7 @@ const App = () => {
         <Route path="/my-payments" element={<MyPayments />} />
         <Route path="/payment-status/:orderId" element={<PaymentStatus />} />
 
-        {/* ✅ Admin */}
+        {/* ADMIN */}
         <Route
           path="/admin"
           element={
@@ -55,7 +59,12 @@ const App = () => {
             </AdminRoute>
           }
         >
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="buses" element={<ManageBuses />} />
+          <Route path="bookings" element={<AdminBookings />} />
+          <Route path="/admin/scan-ticket" element={<AdminScanTicket />} />
+
         </Route>
       </Routes>
     </Wrapper>

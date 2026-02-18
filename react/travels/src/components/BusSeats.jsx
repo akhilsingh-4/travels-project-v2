@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
-import { useNavigate, useParams } from "react-router-dom";
-
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"; 
 const BusSeats = () => {
   const [bus, setBus] = useState(null);
   const [seats, setSeats] = useState([]);
   const [loading, setLoading] = useState(false);
   const { busId } = useParams();
+  const [searchParams] = useSearchParams();          
+  const journeyDate = searchParams.get("date");     
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBus = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/api/buses/${busId}/`);
+        const res = await api.get(`/api/buses/${busId}/`, {
+          params: {
+            date: journeyDate || undefined,         
+          },
+        });
         setBus(res.data);
         setSeats(res.data.seats || []);
       } finally {
@@ -21,7 +26,7 @@ const BusSeats = () => {
       }
     };
     fetchBus();
-  }, [busId]);
+  }, [busId, journeyDate]);
 
   const loadRazorpay = () =>
     new Promise((resolve) => {
@@ -33,52 +38,62 @@ const BusSeats = () => {
     });
 
   const handlePayAndBook = async (seatId) => {
-    try {
-      const ok = await loadRazorpay();
-      if (!ok) return alert("Failed to load payment gateway");
-
-      const orderRes = await api.post("/api/payments/create-order/", {
-        seat_id: seatId,
-      });
-
-      const { order_id, amount, currency, key } = orderRes.data;
-
-      const options = {
-        key,
-        amount,
-        currency,
-        name: "BusBooking",
-        description: "Seat Booking",
-        order_id,
-        handler: async function (response) {
-          try {
-            await api.post("/api/payments/verify/", {
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature,
-              seat_id: seatId,
-            });
-
-            setSeats((prev) =>
-              prev.map((s) =>
-                s.id === seatId ? { ...s, is_booked: true } : s
-              )
-            );
-
-            alert("Payment successful. Your seat is confirmed.");
-            navigate("/my-bookings");
-          } catch (err) {
-            alert("Payment verification failed.");
-          }
-        },
-        theme: { color: "#22d3ee" },
-      };
-
-      new window.Razorpay(options).open();
-    } catch (err) {
-      alert("Seat unavailable. Try another seat.");
+  try {
+    if (!journeyDate) {                           
+      alert("Journey date missing. Please select date.");
+      navigate("/");
+      return;
     }
-  };
+
+
+
+    const ok = await loadRazorpay();
+    if (!ok) return alert("Failed to load payment gateway");
+
+    const orderRes = await api.post("/api/payments/create-order/", {
+      seat_id: seatId,
+      journey_date: journeyDate,
+    });
+
+    const { order_id, amount, currency, key } = orderRes.data;
+
+    const options = {
+      key,
+      amount,
+      currency,
+      name: "BusBooking",
+      description: "Seat Booking",
+      order_id,
+      handler: async function (response) {
+        try {
+          await api.post("/api/payments/verify/", {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            seat_id: seatId,
+            journey_date: journeyDate,
+          });
+
+          setSeats((prev) =>
+            prev.map((s) =>
+              s.id === seatId ? { ...s, is_booked: true } : s
+            )
+          );
+
+          alert("Payment successful. Your seat is confirmed.");
+          navigate("/my-bookings");
+        } catch (err) {
+          alert("Payment verification failed.");
+        }
+      },
+      theme: { color: "#22d3ee" },
+    };
+
+    new window.Razorpay(options).open();
+  } catch (err) {
+    alert("Seat unavailable. Try another seat.");
+  }
+};
 
   const rows = [];
   for (let i = 0; i < seats.length; i += 4) rows.push(seats.slice(i, i + 4));
@@ -87,7 +102,17 @@ const BusSeats = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white py-12 px-4">
       <div className="mx-auto max-w-5xl space-y-8">
 
-        {/* Top Summary */}
+
+        {journeyDate && (                                 
+          <div className="text-center text-sm text-gray-400">
+            Journey Date:{" "}
+            <span className="text-cyan-300 font-semibold">
+              {new Date(journeyDate).toDateString()}
+            </span>
+          </div>
+        )}
+
+  
         {bus && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
@@ -103,7 +128,7 @@ const BusSeats = () => {
           </div>
         )}
 
-        {/* Bus Info */}
+       
         {bus && (
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
             <h2 className="text-2xl font-bold text-cyan-300">{bus.bus_name}</h2>
@@ -163,7 +188,6 @@ const BusSeats = () => {
               ))}
             </div>
 
-            {/* Legend */}
             <div className="mt-8 flex justify-center gap-6 text-xs text-gray-400">
               <div className="flex items-center gap-2">
                 <span className="h-4 w-4 rounded border border-cyan-400/40 bg-black/40" />

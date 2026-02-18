@@ -22,7 +22,8 @@ from .serializers import (
     BookingSerializer,
     UserProfileSerializer,
     PaymentSerializer,
-    AdminBusSerializer
+    AdminBusSerializer,
+    AdminRecentBookingSerializer
 )
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -40,6 +41,9 @@ from .permissions import IsAdmin
 
 
 from rest_framework.parsers import MultiPartParser, FormParser
+
+from django.db.models import Sum
+from datetime import date as date
 
 
 def generate_ticket_pdf_bytes(ticket):
@@ -148,6 +152,7 @@ class BookingTicketView(APIView):
         field("Bus", booking.bus.bus_name)
         field("Route", f"{booking.bus.origin} → {booking.bus.destination}")
         field("Seat", booking.seat.seat_number)
+        field("Journey Date", booking.journey_date)
         field("Start Time", booking.bus.start_time)
         field("Reach Time", booking.bus.reach_time)
         field("Price", f"₹ {booking.bus.price}")
@@ -192,6 +197,7 @@ class TicketVerifyView(APIView):
             "bus": ticket.booking.bus.bus_name,
             "route": f"{ticket.booking.bus.origin} → {ticket.booking.bus.destination}",
             "seat": ticket.booking.seat.seat_number,
+            "journey_date": str(ticket.booking.journey_date),
             "start_time": str(ticket.booking.bus.start_time),
             "reach_time": str(ticket.booking.bus.reach_time),
         })
@@ -404,6 +410,7 @@ class CreatePaymentOrderView(APIView):
 
     def post(self, request):
         seat_id = request.data.get("seat_id")
+        journey_date = request.data.get("journey_date")
 
         if not seat_id:
             return Response({"error": "seat_id is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -420,8 +427,12 @@ class CreatePaymentOrderView(APIView):
                 return Response({"error": "Invalid seat"}, status=status.HTTP_400_BAD_REQUEST)
 
   
-            if seat.is_booked:
-                return Response({"error": "Seat already booked"}, status=status.HTTP_400_BAD_REQUEST)
+            if journey_date and Booking.objects.filter(
+                bus=seat.bus,
+                seat=seat,
+                journey_date=journey_date
+            ).exists():
+                return Response({"error": "Seat already booked for this date"}, status=400)
 
             if seat.is_held and seat.hold_expires_at:
                 if seat.hold_expires_at > timezone.now():
@@ -470,8 +481,16 @@ class VerifyPaymentView(APIView):
         order_id = request.data.get("razorpay_order_id")
         signature = request.data.get("razorpay_signature")
         seat_id = request.data.get("seat_id")
+        journey_date = request.data.get("journey_date")   
 
- 
+        if not journey_date:
+            return Response({"error": "Journey date is required"}, status=400)
+
+        if date.fromisoformat(journey_date) < timezone.localdate():
+            return Response({"error": "Cannot book ticket for past date"}, status=400)
+           
+
+
         try:
             client.utility.verify_payment_signature({
                 "razorpay_order_id": order_id,
@@ -501,8 +520,13 @@ class VerifyPaymentView(APIView):
                 return Response({"error": "Seat not found"}, status=404)
 
         
-            if seat.is_booked:
-                return Response({"error": "Seat already booked"}, status=400)
+            if Booking.objects.filter(
+                bus=seat.bus,
+                seat=seat,
+                journey_date=journey_date
+            ).exists():
+                return Response({"error": "Seat already booked for this date"}, status=400)
+
 
 
             if seat.hold_expires_at and seat.hold_expires_at < timezone.now():
@@ -515,13 +539,14 @@ class VerifyPaymentView(APIView):
             booking = Booking.objects.create(
                 user=request.user,
                 bus=seat.bus,
-                seat=seat
+                seat=seat,
+                journey_date=journey_date
             )
 
-            seat.is_booked = True
             seat.is_held = False
             seat.hold_expires_at = None
             seat.save()
+
 
             payment.razorpay_payment_id = payment_id
             payment.razorpay_signature = signature
@@ -744,3 +769,54 @@ class AdminBusDetailView(APIView):
 
         bus.delete()
         return Response({"message": "Bus deleted successfully"})
+    
+
+class AdminTotalBookingsView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+        total_bookigs = Booking.objects.count()
+        return Response({
+            "total_bookings":total_bookigs
+        }, status=status.HTTP_200_OK)
+
+
+class AdminTotalRevenueView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+        total_revenue = Payment.objects.filter(status ="SUCCESS").aggregate(total=Sum("amount"))["total"] or 0
+
+        return Response({
+            "total_revenue":total_revenue/100
+        }, status=status.HTTP_200_OK)
+    
+
+
+class AdminActiveBusesView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+        
+        active_buses = Bus.objects.filter(is_active=True).count()
+
+        return Response({
+            "active_buses":active_buses},
+            status=status.HTTP_200_OK
+            )
+
+
+class AdminRecentBookingsView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+        recent_bookings = (
+            Booking.objects
+            .select_related("bus", "seat", "user")
+            .order_by("-booking_time")[:10]
+        )
+
+        serializer = AdminRecentBookingSerializer(recent_bookings, many=True)
+        return Response(serializer.data)
+
+
