@@ -109,7 +109,7 @@ export default function ManageBuses() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-white">Manage Buses</h1>
@@ -125,7 +125,7 @@ export default function ManageBuses() {
         </button>
       </div>
 
-      {/* Table */}
+    
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
         {loading ? (
           <div className="p-6 text-gray-300">Loading buses...</div>
@@ -203,7 +203,7 @@ export default function ManageBuses() {
         )}
       </div>
 
-      {/* Modal */}
+   
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <form
@@ -299,7 +299,7 @@ export default function ManageBuses() {
               />
             </div>
 
-            {/* Image upload */}
+      
             <input
               type="file"
               accept="image/*"

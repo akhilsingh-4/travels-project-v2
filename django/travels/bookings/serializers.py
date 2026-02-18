@@ -54,13 +54,35 @@ class SeatSerializer(serializers.ModelSerializer):
 
 
 class BusSearializers(serializers.ModelSerializer):
-    seats = SeatSerializer(many=True, read_only=True)
+    seats = serializers.SerializerMethodField()
     image = serializers.ImageField(use_url=True, required=False)
 
     class Meta:
         model = Bus
         fields = "__all__"
 
+    def get_seats(self, obj):
+        request = self.context.get("request")
+        date = request.query_params.get("date")
+
+        seats = Seat.objects.filter(bus=obj)
+        result = []
+
+        for seat in seats:
+            is_booked = False
+            if date:
+                is_booked = Booking.objects.filter(
+                    seat=seat,
+                    journey_date=date
+                ).exists()
+
+            result.append({
+                "id": seat.id,
+                "seat_number": seat.seat_number,
+                "is_booked": is_booked,
+            })
+
+        return result 
 
 class BookingSerializer(serializers.ModelSerializer):
     bus = serializers.StringRelatedField()
@@ -83,3 +105,24 @@ class AdminBusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bus
         fields = "__all__"
+
+
+class AdminRecentBookingSerializer(serializers.ModelSerializer):
+    bus_name = serializers.CharField(source="bus.bus_name")
+    origin = serializers.CharField(source="bus.origin")
+    destination = serializers.CharField(source="bus.destination")
+    seat_number = serializers.CharField(source="seat.seat_number")
+    username = serializers.CharField(source="user.username")
+
+    class Meta:
+        model = Booking
+        fields = [
+            "id",
+            "username",
+            "bus_name",
+            "origin",
+            "destination",
+            "seat_number",
+            "journey_date",
+            "booking_time",
+        ]
