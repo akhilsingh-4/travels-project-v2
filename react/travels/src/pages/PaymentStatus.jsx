@@ -47,7 +47,7 @@ const PaymentStatus = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white py-16 px-4">
       <div className="max-w-xl mx-auto">
 
-        {/* Page header */}
+     
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
             Payment Status
@@ -57,7 +57,7 @@ const PaymentStatus = () => {
           </p>
         </div>
 
-        {/* Loading */}
+       
         {loading && (
           <div className="text-center py-20 text-cyan-300">
             <div className="w-12 h-12 mx-auto border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
@@ -65,7 +65,7 @@ const PaymentStatus = () => {
           </div>
         )}
 
-        {/* Not found */}
+     
         {!loading && !payment && (
           <div className="text-center py-20 backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-10">
             <div className="text-5xl mb-4">⚠️</div>
@@ -84,12 +84,12 @@ const PaymentStatus = () => {
           </div>
         )}
 
-        {/* Status card */}
+      
         {!loading && payment && (
           <div
             className={`relative backdrop-blur-xl rounded-3xl p-8 border ${status.border} ${status.bg} ${status.glow}`}
           >
-            {/* Pulse glow on success */}
+         
             {payment.status === "SUCCESS" && (
               <div className="absolute inset-0 rounded-3xl animate-pulse bg-green-500/5 pointer-events-none" />
             )}

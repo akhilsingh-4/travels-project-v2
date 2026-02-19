@@ -190,9 +190,27 @@ class TicketVerifyView(APIView):
         if ticket.status == "USED":
             return Response({"valid": False, "message": "Ticket already used"}, status=400)
 
+      
+        today = timezone.localdate()
+        journey_date = ticket.booking.journey_date
+        start_time = ticket.booking.bus.start_time
+
+        now = timezone.localtime().time()
+
+        if journey_date < today:
+            return Response({"valid": False, "message": "Ticket expired (past date)"}, status=400)
+
+        if journey_date == today and start_time < now:
+            return Response({"valid": False, "message": "Ticket expired (bus already departed)"}, status=400)
+
+        # ticket.status = "USED"
+        # ticket.save()
+       
+
         return Response({
             "valid": True,
             "ticket_id": ticket.id,
+            "status": ticket.status,     
             "passenger": ticket.user.username,
             "bus": ticket.booking.bus.bus_name,
             "route": f"{ticket.booking.bus.origin} → {ticket.booking.bus.destination}",
@@ -201,7 +219,25 @@ class TicketVerifyView(APIView):
             "start_time": str(ticket.booking.bus.start_time),
             "reach_time": str(ticket.booking.bus.reach_time),
         })
-    
+
+class MarkTicketUsedView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def post(self, request, ticket_id):
+        try:
+            ticket = Ticket.objects.get(id=ticket_id)
+        except Ticket.DoesNotExist:
+            return Response({"error": "Ticket not found"}, status=404)
+
+        if ticket.status == "USED":
+            return Response({"message": "Ticket already marked as USED"}, status=400)
+
+        ticket.status = "USED"
+        ticket.save()
+
+        return Response({"message": "Ticket marked as USED"})
+
+
 
 class RefundTicketView(APIView):
     permission_classes = [IsAuthenticated]

@@ -1,24 +1,23 @@
 import React, { useState } from "react";
 import api from "../api/api";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const RegisterForm = () => {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
-
+   
     try {
       await api.post("/api/register/", form);
-      setMessage("Account created successfully. Redirecting to login…");
+      toast.success("Account created successfully. Redirecting to login…")
       setTimeout(() => navigate("/login"), 1200);
     } catch {
-      setMessage("Registration failed. The username or email may already be in use.");
+      toast.error("Registration failed. The username or email may already be in use.")
     } finally {
       setLoading(false);
     }
@@ -94,17 +93,7 @@ const RegisterForm = () => {
             {loading ? "Creating account..." : "Create Account"}
           </button>
 
-          {message && (
-            <div
-              className={`p-3 rounded-xl border ${
-                message.toLowerCase().includes("success")
-                  ? "border-green-400/30 bg-green-500/10 text-green-300"
-                  : "border-red-400/30 bg-red-500/10 text-red-300"
-              }`}
-            >
-              {message}
-            </div>
-          )}
+        
 
         
           <div className="text-center text-sm text-gray-400 pt-4 border-t border-white/10">
