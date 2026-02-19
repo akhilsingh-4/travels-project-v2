@@ -50,7 +50,7 @@ const App = () => {
         <Route path="/my-payments" element={<MyPayments />} />
         <Route path="/payment-status/:orderId" element={<PaymentStatus />} />
 
-        {/* ADMIN */}
+      
         <Route
           path="/admin"
           element={

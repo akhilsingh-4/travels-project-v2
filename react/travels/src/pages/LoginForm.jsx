@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/api";
+import { toast } from "react-toastify";
 
 const LoginForm = ({ onLogin }) => {
   const [form, setForm] = useState({ username: "", password: "" });
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -12,7 +12,6 @@ const LoginForm = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
 
     try {
       const res = await api.post("/api/login/", form);
@@ -20,14 +19,17 @@ const LoginForm = ({ onLogin }) => {
       const { access, refresh, is_admin } = res.data;
 
       onLogin(access, refresh);
-      localStorage.setItem("is_admin", is_admin); 
+      localStorage.setItem("is_admin", is_admin);
+
+      toast.success("Login successful");
+
       if (is_admin) {
-        navigate("/admin/buses");  
+        navigate("/admin/buses");
       } else {
-        navigate("/");             
+        navigate("/");
       }
     } catch (err) {
-      setMessage("Invalid credentials. Please check your username or password.");
+      toast.error("Invalid credentials. Please check your username or password.");
     } finally {
       setLoading(false);
     }
@@ -72,8 +74,6 @@ const LoginForm = ({ onLogin }) => {
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
-
-          {message && <p className="text-red-400 text-sm">{message}</p>}
         </form>
 
         <div className="mt-4 text-center text-sm text-gray-300">
