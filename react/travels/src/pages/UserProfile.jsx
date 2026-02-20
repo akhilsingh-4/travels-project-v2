@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
+import { toast } from "react-toastify";
 
 const UserProfile = () => {
   const [form, setForm] = useState({
@@ -12,12 +13,10 @@ const UserProfile = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
-      setMessage("");
       try {
         const res = await api.get("/api/profile/");
         setForm({
@@ -31,7 +30,7 @@ const UserProfile = () => {
             : "",
         });
       } catch {
-        setMessage("Unable to load profile. Please sign in again.");
+        toast.error("Unable to load profile. Please sign in again.");
       } finally {
         setLoading(false);
       }
@@ -55,7 +54,7 @@ const UserProfile = () => {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      setMessage("Image must be less than 2MB");
+      toast.error("Image must be less than 2MB");
       return;
     }
 
@@ -73,7 +72,6 @@ const UserProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
 
     try {
       const formData = new FormData();
@@ -96,9 +94,9 @@ const UserProfile = () => {
           : "",
       });
 
-      setMessage("Profile updated successfully.");
+      toast.success("Profile updated successfully");
     } catch {
-      setMessage("Failed to update profile. Please try again.");
+      toast.error("Failed to update profile. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -107,8 +105,7 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white py-16 px-4">
       <div className="max-w-lg mx-auto">
-
-        {/* Header */}
+      
         <div className="text-center mb-12">
           <div className="relative w-24 h-24 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_30px_rgba(34,211,238,0.45)] overflow-hidden group">
             {form.avatar_url ? (
@@ -118,7 +115,9 @@ const UserProfile = () => {
                 className="w-full h-full object-cover transition group-hover:scale-105"
               />
             ) : (
-              <span className="text-3xl flex items-center justify-center h-full">👤</span>
+              <span className="text-3xl flex items-center justify-center h-full">
+                👤
+              </span>
             )}
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs text-gray-200">
               Change
@@ -133,7 +132,6 @@ const UserProfile = () => {
           </p>
         </div>
 
-        {/* Card */}
         <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 md:p-7 shadow-[0_0_30px_rgba(168,85,247,0.18)]">
           {loading && (
             <div className="text-center py-6 text-cyan-300">
@@ -143,8 +141,7 @@ const UserProfile = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-
-            {/* Avatar Upload */}
+         
             <div>
               <label className="block text-xs text-gray-400 mb-2">
                 Profile Picture
@@ -161,9 +158,10 @@ const UserProfile = () => {
               />
             </div>
 
-            {/* Username */}
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Username</label>
+              <label className="block text-xs text-gray-400 mb-1">
+                Username
+              </label>
               <input
                 value={form.username}
                 disabled
@@ -171,7 +169,6 @@ const UserProfile = () => {
               />
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-xs text-gray-400 mb-1">Email</label>
               <input
@@ -183,7 +180,7 @@ const UserProfile = () => {
               />
             </div>
 
-            {/* Names */}
+      
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input
                 name="first_name"
@@ -201,20 +198,7 @@ const UserProfile = () => {
               />
             </div>
 
-            {/* Message */}
-            {message && (
-              <div
-                className={`p-3 rounded-xl border text-sm ${
-                  message.toLowerCase().includes("success")
-                    ? "border-green-400/30 bg-green-500/10 text-green-300"
-                    : "border-red-400/30 bg-red-500/10 text-red-300"
-                }`}
-              >
-                {message}
-              </div>
-            )}
-
-            {/* Save */}
+        
             <button
               type="submit"
               disabled={loading}

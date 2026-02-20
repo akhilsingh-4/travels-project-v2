@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/api";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -29,8 +30,8 @@ const AdminDashboard = () => {
       });
 
       setRecentBookings(recentRes.data);
-    } catch (err) {
-      alert("Failed to load admin dashboard");
+    } catch {
+      toast.error("Failed to load admin dashboard");
     } finally {
       setLoading(false);
     }
@@ -72,7 +73,7 @@ const AdminDashboard = () => {
         />
         <StatCard
           label="Total Revenue"
-          value={`₹ ${stats.totalRevenue}`}
+          value={`₹ ${Number(stats.totalRevenue).toLocaleString("en-IN")}`}
           color="text-green-300"
         />
         <StatCard
@@ -118,10 +119,8 @@ const AdminDashboard = () => {
                     key={b.id}
                     className="border-b border-white/5 hover:bg-white/5 transition"
                   >
-
-
                     <td className="py-2 text-white">
-                      {b.journey_date}
+                      {b.journey_date || "-"}
                     </td>
                     <td className="py-2 text-white">
                       {b.username}
