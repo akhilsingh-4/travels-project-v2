@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom"; 
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
+
 const BusSeats = () => {
   const [bus, setBus] = useState(null);
   const [seats, setSeats] = useState([]);
   const [loading, setLoading] = useState(false);
   const { busId } = useParams();
-  const [searchParams] = useSearchParams();          
-  const journeyDate = searchParams.get("date");     
+  const [searchParams] = useSearchParams();
+  const journeyDate = searchParams.get("date");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,11 +18,13 @@ const BusSeats = () => {
       try {
         const res = await api.get(`/api/buses/${busId}/`, {
           params: {
-            date: journeyDate || undefined,         
+            date: journeyDate || undefined,
           },
         });
         setBus(res.data);
         setSeats(res.data.seats || []);
+      } catch (err) {
+        toast.error("Failed to load bus details");
       } finally {
         setLoading(false);
       }
@@ -38,62 +42,63 @@ const BusSeats = () => {
     });
 
   const handlePayAndBook = async (seatId) => {
-  try {
-    if (!journeyDate) {                           
-      alert("Journey date missing. Please select date.");
-      navigate("/");
-      return;
+    try {
+      if (!journeyDate) {
+        toast.error("Journey date missing. Please select date.");
+        navigate("/");
+        return;
+      }
+
+      const ok = await loadRazorpay();
+      if (!ok) {
+        toast.error("Failed to load payment gateway");
+        return;
+      }
+
+      const orderRes = await api.post("/api/payments/create-order/", {
+        seat_id: seatId,
+        journey_date: journeyDate,
+      });
+
+      const { order_id, amount, currency, key } = orderRes.data;
+
+      const options = {
+        key,
+        amount,
+        currency,
+        name: "BusBooking",
+        description: "Seat Booking",
+        order_id,
+        handler: async function (response) {
+          try {
+            await api.post("/api/payments/verify/", {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              seat_id: seatId,
+              journey_date: journeyDate,
+            });
+
+            setSeats((prev) =>
+              prev.map((s) =>
+                s.id === seatId ? { ...s, is_booked: true } : s
+              )
+            );
+
+            toast.success("Payment successful. Your seat is confirmed.");
+            navigate("/my-bookings");
+          } catch (err) {
+            toast.error("Payment verification failed.");
+          }
+        },
+        theme: { color: "#22d3ee" },
+      };
+
+      new window.Razorpay(options).open();
+    } catch (err) {
+      toast.error("Seat unavailable. Try another seat.");
     }
-
-
-
-    const ok = await loadRazorpay();
-    if (!ok) return alert("Failed to load payment gateway");
-
-    const orderRes = await api.post("/api/payments/create-order/", {
-      seat_id: seatId,
-      journey_date: journeyDate,
-    });
-
-    const { order_id, amount, currency, key } = orderRes.data;
-
-    const options = {
-      key,
-      amount,
-      currency,
-      name: "BusBooking",
-      description: "Seat Booking",
-      order_id,
-      handler: async function (response) {
-        try {
-          await api.post("/api/payments/verify/", {
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_signature: response.razorpay_signature,
-            seat_id: seatId,
-            journey_date: journeyDate,
-          });
-
-          setSeats((prev) =>
-            prev.map((s) =>
-              s.id === seatId ? { ...s, is_booked: true } : s
-            )
-          );
-
-          alert("Payment successful. Your seat is confirmed.");
-          navigate("/my-bookings");
-        } catch (err) {
-          alert("Payment verification failed.");
-        }
-      },
-      theme: { color: "#22d3ee" },
-    };
-
-    new window.Razorpay(options).open();
-  } catch (err) {
-    alert("Seat unavailable. Try another seat.");
-  }
-};
+  };
 
   const rows = [];
   for (let i = 0; i < seats.length; i += 4) rows.push(seats.slice(i, i + 4));
@@ -101,9 +106,7 @@ const BusSeats = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white py-12 px-4">
       <div className="mx-auto max-w-5xl space-y-8">
-
-
-        {journeyDate && (                                 
+        {journeyDate && (
           <div className="text-center text-sm text-gray-400">
             Journey Date:{" "}
             <span className="text-cyan-300 font-semibold">
@@ -112,7 +115,6 @@ const BusSeats = () => {
           </div>
         )}
 
-  
         {bus && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
@@ -128,7 +130,6 @@ const BusSeats = () => {
           </div>
         )}
 
-       
         {bus && (
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
             <h2 className="text-2xl font-bold text-cyan-300">{bus.bus_name}</h2>
@@ -141,7 +142,6 @@ const BusSeats = () => {
           </div>
         )}
 
-        {/* Loading */}
         {loading && (
           <div className="py-20 text-center text-cyan-300">
             <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-cyan-400 border-t-transparent" />
@@ -149,7 +149,6 @@ const BusSeats = () => {
           </div>
         )}
 
-        {/* Seats */}
         {!loading && (
           <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
             <h3 className="mb-6 text-xl font-semibold text-cyan-300 text-center">
@@ -186,17 +185,6 @@ const BusSeats = () => {
                   )}
                 </div>
               ))}
-            </div>
-
-            <div className="mt-8 flex justify-center gap-6 text-xs text-gray-400">
-              <div className="flex items-center gap-2">
-                <span className="h-4 w-4 rounded border border-cyan-400/40 bg-black/40" />
-                Available
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-4 w-4 rounded border border-white/10 bg-white/10" />
-                Booked
-              </div>
             </div>
 
             <p className="mt-6 text-center text-sm text-gray-500">

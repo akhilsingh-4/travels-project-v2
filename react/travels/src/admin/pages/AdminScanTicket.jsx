@@ -2,9 +2,71 @@ import React, { useEffect, useState } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import api from "../../api/api";
 
+const STATUS_UI = {
+  VALID: {
+    title: "Valid Ticket",
+    color: "text-green-300",
+    box: "bg-green-500/10 border-green-500/30",
+    note: null,
+    canUse: true,
+  },
+  USED: {
+    title: "Ticket Already Used",
+    color: "text-red-300",
+    box: "bg-red-500/10 border-red-500/30",
+    note: "This ticket has already been used and cannot be reused.",
+    canUse: false,
+  },
+  REFUNDED: {
+    title: "Ticket Refunded",
+    color: "text-orange-300",
+    box: "bg-orange-500/10 border-orange-500/30",
+    note: "This ticket was refunded and is no longer valid.",
+    canUse: false,
+  },
+  EXPIRED_PAST: {
+    title: "Ticket Expired",
+    color: "text-yellow-300",
+    box: "bg-yellow-500/10 border-yellow-500/30",
+    note: "Journey date is in the past.",
+    canUse: false,
+  },
+  EXPIRED_DEPARTED: {
+    title: "Bus Already Departed",
+    color: "text-yellow-300",
+    box: "bg-yellow-500/10 border-yellow-500/30",
+    note: "The bus for this ticket has already departed.",
+    canUse: false,
+  },
+  NOT_FOUND: {
+    title: "Invalid Ticket",
+    color: "text-red-300",
+    box: "bg-red-500/10 border-red-500/30",
+    note: "Ticket not found.",
+    canUse: false,
+  },
+  ERROR: {
+    title: "Invalid Ticket",
+    color: "text-red-300",
+    box: "bg-red-500/10 border-red-500/30",
+    note: "Unable to verify ticket.",
+    canUse: false,
+  },
+};
+
+const mapBackendMessageToStatus = (msg = "") => {
+  const m = msg.toLowerCase();
+  if (m.includes("already used")) return "USED";
+  if (m.includes("refunded")) return "REFUNDED";
+  if (m.includes("past date")) return "EXPIRED_PAST";
+  if (m.includes("already departed")) return "EXPIRED_DEPARTED";
+  if (m.includes("not found")) return "NOT_FOUND";
+  return "ERROR";
+};
+
 const AdminScanTicket = () => {
   const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
+  const [statusKey, setStatusKey] = useState(null);
   const [startScan, setStartScan] = useState(false);
   const [marking, setMarking] = useState(false);
 
@@ -27,7 +89,7 @@ const AdminScanTicket = () => {
           const res = await api.get(apiPath);
 
           setResult(res.data);
-          setError(null);
+          setStatusKey("VALID");
 
           scanner.clear();
         } catch (err) {
@@ -36,13 +98,13 @@ const AdminScanTicket = () => {
             err?.response?.data?.error ||
             "Invalid ticket";
 
-          setError(msg);
-          setResult(null);
+          const mapped = mapBackendMessageToStatus(msg);
+
+          setResult({ message: msg });
+          setStatusKey(mapped);
         }
       },
-      (err) => {
-        console.warn("Scan error:", err);
-      }
+      (err) => console.warn("Scan error:", err)
     );
 
     return () => {
@@ -56,22 +118,21 @@ const AdminScanTicket = () => {
     try {
       setMarking(true);
       await api.post(`/api/tickets/mark-used/${result.ticket_id}/`);
+      setStatusKey("USED");
       setResult((prev) => ({ ...prev, status: "USED" }));
-      setError(null);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
         "Failed to mark ticket as USED";
-
-      setError(msg);
+      setStatusKey("ERROR");
+      setResult({ message: msg });
     } finally {
       setMarking(false);
     }
   };
 
-  const today = new Date().toISOString().split("T")[0];
-  const isDateMismatch = result?.journey_date !== today;
+  const ui = STATUS_UI[statusKey];
 
   return (
     <div className="p-6 text-white">
@@ -95,47 +156,42 @@ const AdminScanTicket = () => {
         </>
       )}
 
-      {result && (
-        <div className="mt-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30 space-y-2">
-          <p className="text-green-300 font-semibold">Valid Ticket</p>
-          <p>User: {result.passenger}</p>
-          <p>Bus: {result.bus}</p>
-          <p>Seat: {result.seat}</p>
-          <p>Route: {result.route}</p>
-          <p>Journey Date: {result.journey_date}</p>
+      {ui && (
+        <div className={`mt-6 p-4 rounded-xl border ${ui.box} space-y-2`}>
+          <p className={`font-semibold ${ui.color}`}>{ui.title}</p>
 
-          <p>
-            Status:{" "}
-            <span
-              className={
-                result.status === "USED" ? "text-red-400" : "text-cyan-300"
-              }
-            >
-              {result.status}
-            </span>
-          </p>
+          {statusKey === "VALID" && result && (
+            <>
+              <p>User: {result.passenger}</p>
+              <p>Bus: {result.bus}</p>
+              <p>Seat: {result.seat}</p>
+              <p>Route: {result.route}</p>
+              <p>Journey Date: {result.journey_date}</p>
+              <p>Start Time: {result.start_time}</p>
 
-          {isDateMismatch && (
-            <p className="text-yellow-400 text-sm">
-              Journey date does not match today
+              {ui.canUse && (
+                <button
+                  onClick={handleMarkUsed}
+                  disabled={marking}
+                  className="mt-3 rounded-xl bg-red-500 px-4 py-2 text-black font-semibold disabled:opacity-60"
+                >
+                  {marking ? "Marking..." : "Mark as USED"}
+                </button>
+              )}
+            </>
+          )}
+
+          {ui.note && (
+            <p className="text-sm text-gray-300">
+              {ui.note}
             </p>
           )}
 
-          {result.status !== "USED" && (
-            <button
-              onClick={handleMarkUsed}
-              disabled={marking}
-              className="mt-3 rounded-xl bg-red-500 px-4 py-2 text-black font-semibold disabled:opacity-60"
-            >
-              {marking ? "Marking..." : "Mark as USED"}
-            </button>
+          {statusKey !== "VALID" && result?.message && (
+            <p className="text-sm text-gray-300">
+              {result.message}
+            </p>
           )}
-        </div>
-      )}
-
-      {error && (
-        <div className="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-          <p className="text-red-400">{error}</p>
         </div>
       )}
     </div>

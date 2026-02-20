@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const MyPayments = () => {
   const [payments, setPayments] = useState([]);
@@ -11,6 +12,13 @@ const MyPayments = () => {
       try {
         const res = await api.get("/api/payments/my/");
         setPayments(res.data);
+
+        // Optional: info toast when no payments
+        // if (res.data.length === 0) {
+        //   toast.info("No payments found yet");
+        // }
+      } catch (err) {
+        toast.error("Failed to load payments");
       } finally {
         setLoading(false);
       }
@@ -21,7 +29,6 @@ const MyPayments = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white py-12 px-4">
       <div className="max-w-5xl mx-auto">
-
         <div className="text-center mb-10">
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-400">
             My Payments
@@ -43,7 +50,6 @@ const MyPayments = () => {
           </div>
         )}
 
-      
         {!loading && payments.length > 0 && (
           <div className="hidden sm:grid grid-cols-5 gap-4 px-4 py-2 text-xs uppercase tracking-wide text-gray-400 border-b border-white/10 mb-3">
             <div>Order ID</div>
@@ -97,7 +103,6 @@ const MyPayments = () => {
             </div>
           ))}
         </div>
-
       </div>
     </div>
   );

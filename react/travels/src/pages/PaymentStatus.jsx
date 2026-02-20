@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api/api";
+import { toast } from "react-toastify";
 
 const PaymentStatus = () => {
   const { orderId } = useParams();
@@ -8,10 +9,19 @@ const PaymentStatus = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api
-      .get(`/api/payments/status/${orderId}/`)
-      .then((res) => setPayment(res.data))
-      .finally(() => setLoading(false));
+    const fetchStatus = async () => {
+      try {
+        const res = await api.get(`/api/payments/status/${orderId}/`);
+        setPayment(res.data);
+      } catch (err) {
+        toast.error("Failed to fetch payment status");
+        setPayment(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatus();
   }, [orderId]);
 
   const statusConfig = {
@@ -46,8 +56,6 @@ const PaymentStatus = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white py-16 px-4">
       <div className="max-w-xl mx-auto">
-
-     
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
             Payment Status
@@ -57,7 +65,6 @@ const PaymentStatus = () => {
           </p>
         </div>
 
-       
         {loading && (
           <div className="text-center py-20 text-cyan-300">
             <div className="w-12 h-12 mx-auto border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
@@ -65,7 +72,6 @@ const PaymentStatus = () => {
           </div>
         )}
 
-     
         {!loading && !payment && (
           <div className="text-center py-20 backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-10">
             <div className="text-5xl mb-4">⚠️</div>
@@ -84,12 +90,10 @@ const PaymentStatus = () => {
           </div>
         )}
 
-      
         {!loading && payment && (
           <div
             className={`relative backdrop-blur-xl rounded-3xl p-8 border ${status.border} ${status.bg} ${status.glow}`}
           >
-         
             {payment.status === "SUCCESS" && (
               <div className="absolute inset-0 rounded-3xl animate-pulse bg-green-500/5 pointer-events-none" />
             )}
@@ -139,9 +143,10 @@ const PaymentStatus = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500">Order ID</span>
                   <button
-                    onClick={() =>
-                      navigator.clipboard.writeText(payment.razorpay_order_id)
-                    }
+                    onClick={() => {
+                      navigator.clipboard.writeText(payment.razorpay_order_id);
+                      toast.success("Order ID copied");
+                    }}
                     className="text-cyan-300 hover:underline text-xs"
                   >
                     Copy

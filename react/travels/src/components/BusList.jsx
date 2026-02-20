@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const SkeletonCard = () => (
   <div className="animate-pulse flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5">
@@ -18,7 +19,7 @@ const BusList = () => {
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
-  const [journeyDate, setJourneyDate] = useState("");   
+  const [journeyDate, setJourneyDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState(null);
   const navigate = useNavigate();
@@ -34,6 +35,11 @@ const BusList = () => {
       });
       const active = res.data.filter((b) => b.is_active !== false);
       setBuses(active);
+      if (active.length === 0) {
+        toast.info("No buses found for selected route");
+      }
+    } catch {
+      toast.error("Failed to load buses");
     } finally {
       setLoading(false);
     }
@@ -42,7 +48,6 @@ const BusList = () => {
   useEffect(() => {
     fetchBuses();
   }, [origin, destination]);
-
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("recent_buses") || "[]");
@@ -64,7 +69,7 @@ const BusList = () => {
 
   const handleViewSeats = (bus) => {
     if (!journeyDate) {
-      alert("Please select journey date");  
+      toast.error("Please select journey date");
       return;
     }
 
@@ -85,14 +90,12 @@ const BusList = () => {
     localStorage.setItem("recent_buses", JSON.stringify(updated));
     setRecentlyViewed(updated);
 
-    navigate(`/bus/${bus.id}?date=${journeyDate}`);  
+    navigate(`/bus/${bus.id}?date=${journeyDate}`);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white">
       <div className="mx-auto max-w-7xl px-4 py-12 space-y-20">
-
-     
         <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
@@ -128,7 +131,6 @@ const BusList = () => {
               </button>
             </div>
 
-     
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
                 <p className="text-lg font-semibold text-cyan-300">{buses.length}+</p>
@@ -166,7 +168,6 @@ const BusList = () => {
           </div>
         </section>
 
-      
         {recentlyViewed.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-xl font-semibold text-cyan-300">Recently Viewed</h2>
@@ -187,11 +188,9 @@ const BusList = () => {
           </section>
         )}
 
-      
         <section id="search-section" className="space-y-10">
-       
           <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">   
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <input
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white"
                 placeholder="From (Origin)"
@@ -204,17 +203,16 @@ const BusList = () => {
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
               />
-             <input
-              type="date"
-              min={new Date().toISOString().split("T")[0]}
-              className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white [color-scheme:dark]"
-              value={journeyDate}
-              onChange={(e) => setJourneyDate(e.target.value)}
-            />
+              <input
+                type="date"
+                min={new Date().toISOString().split("T")[0]}
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white [color-scheme:dark]"
+                value={journeyDate}
+                onChange={(e) => setJourneyDate(e.target.value)}
+              />
             </div>
           </div>
 
-       
           {loading ? (
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
               {[1, 2, 3].map((i) => (

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import api from "../api/api";
 
-const Wrapper = ({ token, handleLogout, children }) => {
+const Wrapper = ({ token, handleLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [me, setMe] = useState(null);
@@ -33,12 +33,8 @@ const Wrapper = ({ token, handleLogout, children }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white">
-
-      {/* NAVBAR */}
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/5 border-b border-white/10 shadow-[0_0_24px_rgba(34,211,238,0.12)]">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
-          {/* Brand */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500 text-black flex items-center justify-center shadow-[0_0_16px_rgba(168,85,247,0.5)] transition group-hover:shadow-[0_0_24px_rgba(34,211,238,0.6)]">
               🚍
@@ -48,7 +44,6 @@ const Wrapper = ({ token, handleLogout, children }) => {
             </span>
           </Link>
 
-          {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-2 text-sm">
             {token && (
               <>
@@ -66,16 +61,10 @@ const Wrapper = ({ token, handleLogout, children }) => {
 
             {!token ? (
               <>
-                <Link
-                  to="/login"
-                  className="px-4 py-2 rounded-xl border border-white/20 text-gray-300 hover:text-cyan-300 hover:border-cyan-400/40 transition"
-                >
+                <Link to="/login" className="px-4 py-2 rounded-xl border border-white/20 text-gray-300 hover:text-cyan-300 hover:border-cyan-400/40 transition">
                   Login
                 </Link>
-                <Link
-                  to="/register"
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold shadow hover:shadow-cyan-500/30 transition"
-                >
+                <Link to="/register" className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold shadow hover:shadow-cyan-500/30 transition">
                   Register
                 </Link>
               </>
@@ -106,7 +95,6 @@ const Wrapper = ({ token, handleLogout, children }) => {
             )}
           </div>
 
-          {/* Mobile Toggle */}
           <button
             onClick={() => setOpen((o) => !o)}
             className="md:hidden text-xl px-3 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 transition"
@@ -115,7 +103,6 @@ const Wrapper = ({ token, handleLogout, children }) => {
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {open && (
           <div className="md:hidden px-4 pb-4 pt-3 space-y-2 backdrop-blur-xl bg-black/70 border-t border-white/10">
             {token && (
@@ -156,14 +143,12 @@ const Wrapper = ({ token, handleLogout, children }) => {
         )}
       </nav>
 
-      {/* CONTENT */}
       <main className="max-w-7xl mx-auto px-4 py-10">
         <div className="backdrop-blur-2xl bg-white/5 rounded-3xl border border-white/10 shadow-[0_0_32px_rgba(168,85,247,0.15)] p-6 md:p-8">
-          {children}
+          <Outlet />
         </div>
       </main>
 
-      {/* FOOTER */}
       <footer className="border-t border-white/10 backdrop-blur-xl bg-white/5 py-5 text-center text-sm text-gray-400">
         BusBooking © 2026 — Travel smart. Book with confidence.
       </footer>
