@@ -1,0 +1,21 @@
+services:
+  django:
+    build: ./django/travels
+    container_name: drf-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./django:/app
+    environment:
+      - DEBUG=1
+
+  frontend:
+    build: ./react/travels
+    container_name: react-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./react/travels:/app
+      - /app/node_modules
+    depends_on:
+      - django
