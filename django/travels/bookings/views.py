@@ -158,7 +158,7 @@ class BookingTicketView(APIView):
         field("Price", f"₹ {booking.bus.price}")
         field("Booked At", booking.booking_time.strftime("%d %b %Y, %I:%M %p"))
 
-        verify_url = f"http://localhost:8000/api/tickets/verify/{ticket.id}/"
+        verify_url = f"https://travels-backend-ge3s.onrender.com/api/tickets/verify/{ticket.id}/"
         qr_img = qrcode.make(verify_url).convert("RGB")
         p.drawInlineImage(qr_img, card_x + card_w - 150, card_y + 50, 110, 110)
 
@@ -270,13 +270,16 @@ class RefundTicketView(APIView):
             return Response({"error": "No successful payment found"}, status=400)
 
         try:
-            client.payment.refund(
+
+            refund = client.payment.refund(
                 payment.razorpay_payment_id,
                 {
                     "amount": payment.amount 
                 }
             )
+            print("Refund success:", refund)
         except Exception as e:
+            print("Refund error:", str(e))
             return Response({"error": f"Refund failed: {str(e)}"}, status=400)
 
         with transaction.atomic():
@@ -410,7 +413,7 @@ class RequestPasswordResetView(APIView):
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = PasswordResetTokenGenerator().make_token(user)
-        reset_link = f"http://localhost:5173/reset-password/{uid}/{token}/"
+        reset_link = f"https://travels-project-v2.vercel.app/reset-password/{uid}/{token}/"
         try:
             Util.send_templated_email(
                 subject="Reset Your Password - Travels App",
@@ -611,27 +614,29 @@ class VerifyPaymentView(APIView):
         pdf_bytes = generate_ticket_pdf_bytes(ticket)
 
         if request.user.email:
-            Util.send_templated_email(
-                subject="Your Bus Ticket – Travels App",
-                template_name="emails/ticket_email.html",
-                context={
-                "username": request.user.username,
-                "ticket_id": ticket.id,
-                "bus_name": booking.bus.bus_name,
-                "origin": booking.bus.origin,
-                "destination": booking.bus.destination,
-                "seat_number": booking.seat.seat_number,
-                "start_time": booking.bus.start_time,
-                "reach_time": booking.bus.reach_time,
-},
-
-                to_email=request.user.email,
-                attachments=[{
-                    "filename": f"ticket_{ticket.id}.pdf",
-                    "content": pdf_bytes,
-                    "mimetype": "application/pdf",
-                }]
-            )
+            try:
+                Util.send_templated_email(
+                    subject="Your Bus Ticket – Travels App",
+                    template_name="emails/ticket_email.html",
+                    context={
+                        "username": request.user.username,
+                        "ticket_id": ticket.id,
+                        "bus_name": booking.bus.bus_name,
+                        "origin": booking.bus.origin,
+                        "destination": booking.bus.destination,
+                        "seat_number": booking.seat.seat_number,
+                        "start_time": booking.bus.start_time,
+                        "reach_time": booking.bus.reach_time,
+                    },
+                    to_email=request.user.email,
+                    attachments=[{
+                        "filename": f"ticket_{ticket.id}.pdf",
+                        "content": pdf_bytes,
+                        "mimetype": "application/pdf",
+                    }]
+                )
+            except Exception as e:
+                print("Ticket email failed:", str(e)) 
 
         return Response({
             "message": "Payment verified and booking confirmed",
@@ -745,7 +750,13 @@ class CancelBookingView(APIView):
         if not booking_id:
             return Response({"error": "Booking id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        booking = Booking.objects.select_related("seat", "bus").get(id=booking_id, user=request.user)
+        try:
+            booking = Booking.objects.select_related("seat", "bus").get(
+                id=booking_id,
+                user=request.user
+            )
+        except Booking.DoesNotExist:
+            return Response({"error": "Booking not found"}, status=404)
         seat = booking.seat
         seat.is_booked = False
         seat.save()

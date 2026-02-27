@@ -1,27 +1,30 @@
-from django.core.mail import EmailMultiAlternatives
+import os
+import requests
 from django.template.loader import render_to_string
-from django.conf import settings
+
 
 class Util:
     @staticmethod
     def send_templated_email(subject, to_email, template_name, context, attachments=None):
-        html_message = render_to_string(template_name, context)
+        api_key = os.getenv("RESEND_API_KEY")
 
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body="This email requires HTML support.",
-            from_email=settings.EMAIL_HOST_USER,
-            to=[to_email],
+        html_content = render_to_string(template_name, context)
+
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": os.getenv("DEFAULT_FROM_EMAIL", "onboarding@resend.dev"),
+                "to": [to_email],
+                "subject": subject,
+                "html": html_content,
+            },
         )
 
-        email.attach_alternative(html_message, "text/html")
+        if response.status_code not in [200, 201]:
+            print("Resend error:", response.text)
 
-        if attachments:
-            for file in attachments:
-                email.attach(
-                    file["filename"],
-                    file["content"],
-                    file["mimetype"]
-                )
-
-        email.send()
+        return response.status_code

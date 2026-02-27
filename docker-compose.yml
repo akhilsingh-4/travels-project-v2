@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   django:
     build: ./django/travels
@@ -6,16 +8,10 @@ services:
       - "8000:8000"
     volumes:
       - ./django:/app
-    environment:
-      - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,drf-backend,react-frontend
-      - FRONTEND_URL=http://localhost:5173
-
-      - EMAIL_HOST_USER=2426tester@gmail.com
-      - EMAIL_HOST_PASSWORD=xxvbgdhxypxksrob
-
-      - RAZORPAY_KEY_ID=rzp_test_dnAdAp1u96caf5
-      - RAZORPAY_KEY_SECRET=UzttVPPjiS5pXArasNmr5srn
+    env_file:
+      - .env
+    depends_on:
+      - frontend
 
   frontend:
     build: ./react/travels
@@ -25,5 +21,3 @@ services:
     volumes:
       - ./react/travels:/app
       - /app/node_modules
-    depends_on:
-      - django
