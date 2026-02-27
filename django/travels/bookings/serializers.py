@@ -22,25 +22,28 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(source="profile.avatar", required=False)
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ["id", "username", "email", "first_name", "last_name", "avatar"]
         read_only_fields = ["id", "username"]
 
+    def get_avatar(self, obj):
+        request = self.context.get("request")
+        if hasattr(obj, "profile") and obj.profile.avatar:
+            return request.build_absolute_uri(obj.profile.avatar.url)
+        return None
+
     def update(self, instance, validated_data):
         profile_data = validated_data.pop("profile", {})
 
-        # Update user fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Ensure profile exists (fix for old users)
         profile, _ = Profile.objects.get_or_create(user=instance)
 
-        # Update avatar if provided
         if "avatar" in profile_data:
             profile.avatar = profile_data["avatar"]
             profile.save()
