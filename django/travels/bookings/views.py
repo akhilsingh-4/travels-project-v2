@@ -273,7 +273,7 @@ class RefundTicketView(APIView):
             client.payment.refund(
                 payment.razorpay_payment_id,
                 {
-                    "amount": payment.amount  # already stored in paise
+                    "amount": payment.amount 
                 }
             )
         except Exception as e:
@@ -335,7 +335,7 @@ class RegisterApiView(APIView):
                         template_name="emails/register.html",
                         context={
                             "username": user.username,
-                            "link": "http://localhost:5173/login",
+                            "link": "https://travels-project-v2.vercel.app/login",
                         },
                         to_email=user.email
                     )
@@ -411,7 +411,6 @@ class RequestPasswordResetView(APIView):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = PasswordResetTokenGenerator().make_token(user)
         reset_link = f"http://localhost:5173/reset-password/{uid}/{token}/"
-
         try:
             Util.send_templated_email(
                 subject="Reset Your Password - Travels App",
