@@ -38,14 +38,17 @@ const LoginForm = ({ onLogin }) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black px-4">
       <div className="relative w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8">
+        
         <div className="text-center mb-8">
           <h2 className="text-3xl font-semibold text-white">Sign in</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          
           <input
-            className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white"
+            className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
             placeholder="Username"
+            value={form.username}
             onChange={(e) => setForm({ ...form, username: e.target.value })}
             required
           />
@@ -53,8 +56,9 @@ const LoginForm = ({ onLogin }) => {
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
-              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white pr-12"
+              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 text-white pr-12 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Password"
+              value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
             />
@@ -70,16 +74,34 @@ const LoginForm = ({ onLogin }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold"
+            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition text-white font-semibold"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <div className="mt-4 text-center text-sm text-gray-300">
-          <Link to="/forgot-password" className="underline">
-            Forgot password?
-          </Link>
+        {/* Links Section */}
+        <div className="mt-6 text-center text-sm text-gray-300 space-y-3">
+          
+          <div>
+            <Link
+              to="/forgot-password"
+              className="underline hover:text-white"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
+          <div>
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="text-indigo-400 font-semibold hover:text-indigo-300"
+            >
+              Register
+            </Link>
+          </div>
+
         </div>
       </div>
     </div>
