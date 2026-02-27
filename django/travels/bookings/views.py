@@ -270,7 +270,12 @@ class RefundTicketView(APIView):
             return Response({"error": "No successful payment found"}, status=400)
 
         try:
-            client.payment.refund(payment.razorpay_payment_id)
+            client.payment.refund(
+                payment.razorpay_payment_id,
+                {
+                    "amount": payment.amount  # already stored in paise
+                }
+            )
         except Exception as e:
             return Response({"error": f"Refund failed: {str(e)}"}, status=400)
 
