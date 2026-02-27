@@ -7,7 +7,15 @@ services:
     volumes:
       - ./django:/app
     environment:
-      - DEBUG=1
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,drf-backend,react-frontend
+      - FRONTEND_URL=http://localhost:5173
+
+      - EMAIL_HOST_USER=2426tester@gmail.com
+      - EMAIL_HOST_PASSWORD=xxvbgdhxypxksrob
+
+      - RAZORPAY_KEY_ID=rzp_test_dnAdAp1u96caf5
+      - RAZORPAY_KEY_SECRET=UzttVPPjiS5pXArasNmr5srn
 
   frontend:
     build: ./react/travels
