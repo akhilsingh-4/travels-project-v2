@@ -666,10 +666,16 @@ class BusListCreateApiView(generics.ListAPIView):
 
         return queryset
 
+    def get_serializer_context(self):
+        return {"request": self.request}
+
 
 class BusDetailView(generics.RetrieveAPIView):
     queryset = Bus.objects.all()
     serializer_class = BusSearializers
+
+    def get_serializer_context(self):
+        return {"request": self.request}
 
 
 # class BookingView(APIView):
