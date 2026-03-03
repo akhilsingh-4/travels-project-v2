@@ -67,6 +67,9 @@ def generate_ticket_pdf_bytes(ticket):
     p.setFillColor(colors.lightgrey)
     p.drawString(card_x + 30, height - 125, f"Ticket ID: #{ticket.id}")
 
+    p.setStrokeColor(colors.grey)
+    p.line(card_x + 20, height - 145, card_x + card_w - 20, height - 145)
+
     y = height - 180
     gap = 28
 
@@ -86,10 +89,23 @@ def generate_ticket_pdf_bytes(ticket):
     field("Bus", booking.bus.bus_name)
     field("Route", f"{booking.bus.origin} → {booking.bus.destination}")
     field("Seat", booking.seat.seat_number)
+    field("Journey Date", booking.journey_date)
     field("Start Time", booking.bus.start_time)
     field("Reach Time", booking.bus.reach_time)
     field("Price", f"₹ {booking.bus.price}")
     field("Booked At", booking.booking_time.strftime("%d %b %Y, %I:%M %p"))
+
+    verify_url = f"https://travels-backend-ge3s.onrender.com/api/tickets/verify/{ticket.id}/"
+    qr_img = qrcode.make(verify_url).convert("RGB")
+    p.drawInlineImage(qr_img, card_x + card_w - 150, card_y + 50, 110, 110)
+
+    p.setFillColor(colors.lightgrey)
+    p.setFont("Helvetica", 9)
+    p.drawString(card_x + card_w - 155, card_y + 40, "Scan to verify ticket")
+
+    p.setFillColor(colors.lightgrey)
+    p.setFont("Helvetica-Oblique", 10)
+    p.drawString(card_x + 30, card_y + 30, "Show this ticket while boarding. Have a safe journey!")
 
     p.showPage()
     p.save()
@@ -103,75 +119,20 @@ class BookingTicketView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, booking_id):
-        booking = Booking.objects.select_related("bus", "seat", "user").get(id=booking_id, user=request.user)
+        booking = Booking.objects.select_related(
+            "bus", "seat", "user"
+        ).get(id=booking_id, user=request.user)
 
         ticket, _ = Ticket.objects.get_or_create(
             booking=booking,
             defaults={"user": request.user}
         )
 
-        response = HttpResponse(content_type="application/pdf")
+        pdf_bytes = generate_ticket_pdf_bytes(ticket)
+
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="ticket_{ticket.id}.pdf"'
 
-        p = canvas.Canvas(response, pagesize=A4)
-        width, height = A4
-
-        card_x = 40
-        card_y = 120
-        card_w = width - 80
-        card_h = height - 200
-
-        p.setFillColorRGB(0.05, 0.1, 0.15)
-        p.roundRect(card_x, card_y, card_w, card_h, 20, fill=1)
-
-        p.setFillColor(colors.white)
-        p.setFont("Helvetica-Bold", 20)
-        p.drawString(card_x + 30, height - 100, "Travels App - Bus Ticket")
-
-        p.setFont("Helvetica", 11)
-        p.setFillColor(colors.lightgrey)
-        p.drawString(card_x + 30, height - 125, f"Ticket ID: #{ticket.id}")
-
-        p.setStrokeColor(colors.grey)
-        p.line(card_x + 20, height - 145, card_x + card_w - 20, height - 145)
-
-        y = height - 180
-        gap = 28
-
-        def field(label, value):
-            nonlocal y
-            p.setFillColor(colors.cyan)
-            p.setFont("Helvetica-Bold", 11)
-            p.drawString(card_x + 30, y, label)
-            p.setFillColor(colors.white)
-            p.setFont("Helvetica", 12)
-            p.drawString(card_x + 180, y, str(value))
-            y -= gap
-
-        field("Passenger", booking.user.username)
-        field("Bus", booking.bus.bus_name)
-        field("Route", f"{booking.bus.origin} → {booking.bus.destination}")
-        field("Seat", booking.seat.seat_number)
-        field("Journey Date", booking.journey_date)
-        field("Start Time", booking.bus.start_time)
-        field("Reach Time", booking.bus.reach_time)
-        field("Price", f"₹ {booking.bus.price}")
-        field("Booked At", booking.booking_time.strftime("%d %b %Y, %I:%M %p"))
-
-        verify_url = f"https://travels-backend-ge3s.onrender.com/api/tickets/verify/{ticket.id}/"
-        qr_img = qrcode.make(verify_url).convert("RGB")
-        p.drawInlineImage(qr_img, card_x + card_w - 150, card_y + 50, 110, 110)
-
-        p.setFillColor(colors.lightgrey)
-        p.setFont("Helvetica", 9)
-        p.drawString(card_x + card_w - 155, card_y + 40, "Scan to verify ticket")
-
-        p.setFillColor(colors.lightgrey)
-        p.setFont("Helvetica-Oblique", 10)
-        p.drawString(card_x + 30, card_y + 30, "Show this ticket while boarding. Have a safe journey!")
-
-        p.showPage()
-        p.save()
         return response
 
 
@@ -885,3 +846,133 @@ class AdminRecentBookingsView(APIView):
         return Response(serializer.data)
 
 
+class EditBookingRequestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_id):
+        new_seat_id = request.data.get("seat_id")
+        new_bus_id = request.data.get("bus_id")
+        new_date = request.data.get("journey_date")
+
+        try:
+            booking = Booking.objects.select_related("bus", "seat").get(
+                id=booking_id,
+                user=request.user
+            )
+        except Booking.DoesNotExist:
+            return Response({"error": "Booking not found"}, status=404)
+
+        extra_amount = 0
+        edit_fee = 0
+
+        new_bus = booking.bus
+        new_seat = booking.seat
+        new_journey_date = booking.journey_date
+
+    
+        if new_bus_id:
+            try:
+                new_bus = Bus.objects.get(id=new_bus_id)
+            except Bus.DoesNotExist:
+                return Response({"error": "Invalid bus"}, status=400)
+
+            price_difference = new_bus.price - booking.bus.price
+            if price_difference > 0:
+                extra_amount += price_difference
+
+        if new_seat_id and int(new_seat_id) != booking.seat.id:
+            try:
+                new_seat = Seat.objects.get(id=new_seat_id, bus=new_bus)
+            except Seat.DoesNotExist:
+                return Response({"error": "Invalid seat"}, status=400)
+
+            edit_fee += 50 
+     
+        if new_date and str(new_date) != str(booking.journey_date):
+            edit_fee += 100 
+            new_journey_date = new_date
+
+        total_extra = extra_amount + edit_fee
+
+        if total_extra <= 0:
+            return Response({"message": "No extra payment required"})
+
+        amount = int(total_extra * 100)
+
+        order = client.order.create({
+            "amount": amount,
+            "currency": "INR",
+            "payment_capture": 1,
+        })
+
+        Payment.objects.create(
+            user=request.user,
+            razorpay_order_id=order["id"],
+            amount=amount,
+            status="EDIT_PENDING",
+        )
+
+        return Response({
+            "order_id": order["id"],
+            "amount": amount,
+            "key": settings.RAZORPAY_KEY_ID,
+            "extra_amount": total_extra
+        })
+    
+
+class VerifyEditPaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        order_id = request.data.get("razorpay_order_id")
+        payment_id = request.data.get("razorpay_payment_id")
+        signature = request.data.get("razorpay_signature")
+        booking_id = request.data.get("booking_id")
+        new_seat_id = request.data.get("seat_id")
+        new_bus_id = request.data.get("bus_id")
+        new_date = request.data.get("journey_date")
+
+        try:
+            client.utility.verify_payment_signature({
+                "razorpay_order_id": order_id,
+                "razorpay_payment_id": payment_id,
+                "razorpay_signature": signature,
+            })
+        except:
+            return Response({"error": "Invalid signature"}, status=400)
+
+        with transaction.atomic():
+            payment = Payment.objects.select_for_update().get(
+                razorpay_order_id=order_id,
+                user=request.user
+            )
+
+            booking = Booking.objects.select_for_update().get(
+                id=booking_id,
+                user=request.user
+            )
+
+        
+            booking.seat.is_booked = False
+            booking.seat.save()
+
+           
+            if new_bus_id:
+                booking.bus = Bus.objects.get(id=new_bus_id)
+
+            if new_seat_id:
+                new_seat = Seat.objects.get(id=new_seat_id)
+                new_seat.is_booked = True
+                new_seat.save()
+                booking.seat = new_seat
+
+            if new_date:
+                booking.journey_date = new_date
+
+            booking.save()
+
+            payment.status = "SUCCESS"
+            payment.razorpay_payment_id = payment_id
+            payment.save()
+
+        return Response({"message": "Booking updated successfully"})

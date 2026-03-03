@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import MarkTicketUsedView, AdminActiveBusesView, AdminRecentBookingsView, AdminTotalBookingsView, AdminTotalRevenueView,RegisterApiView,AdminBusListCreateView, AdminBusDetailView, RefundTicketView, TicketVerifyView, BookingTicketView, LoginView,PaymentStatusView, MyPaymentsView, BusDetailView, BusListCreateApiView,VerifyPaymentView, CreatePaymentOrderView, RequestPasswordResetView, ConfirmPasswordResetView, UserProfileView,MyBookingsView,CancelBookingView
+from .views import EditBookingRequestView, VerifyEditPaymentView, MarkTicketUsedView, AdminActiveBusesView, AdminRecentBookingsView, AdminTotalBookingsView, AdminTotalRevenueView,RegisterApiView,AdminBusListCreateView, AdminBusDetailView, RefundTicketView, TicketVerifyView, BookingTicketView, LoginView,PaymentStatusView, MyPaymentsView, BusDetailView, BusListCreateApiView,VerifyPaymentView, CreatePaymentOrderView, RequestPasswordResetView, ConfirmPasswordResetView, UserProfileView,MyBookingsView,CancelBookingView
 
 urlpatterns = [
     path('buses/', BusListCreateApiView.as_view(), name='buslist'),
@@ -27,8 +27,8 @@ urlpatterns = [
     path("admin/dashboard/active-buses/", AdminActiveBusesView.as_view()),
     path("admin/dashboard/recent-bookings/", AdminRecentBookingsView.as_view()),
     path("tickets/mark-used/<int:ticket_id>/", MarkTicketUsedView.as_view()),
-
-
+    path("bookings/<int:booking_id>/edit/request/", EditBookingRequestView.as_view()),
+    path("bookings/edit/verify/", VerifyEditPaymentView.as_view()),
 
 
 ]

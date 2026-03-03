@@ -54,7 +54,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-10">
-      {/* HEADER */}
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
           Admin Dashboard
@@ -64,7 +63,6 @@ const AdminDashboard = () => {
         </p>
       </div>
 
-      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard
           label="Total Bookings"
@@ -83,7 +81,7 @@ const AdminDashboard = () => {
         />
       </div>
 
-      {/* RECENT BOOKINGS */}
+ 
       <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-cyan-300">

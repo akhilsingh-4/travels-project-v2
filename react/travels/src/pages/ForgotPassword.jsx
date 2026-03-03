@@ -33,7 +33,7 @@ const ForgotPassword = () => {
 
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_20px_rgba(34,211,238,0.45)] flex items-center justify-center text-xl">
-            🔐
+            Reset
           </div>
           <h2 className="text-2xl font-semibold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
             Reset Password

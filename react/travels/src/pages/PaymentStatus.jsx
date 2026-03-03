@@ -26,7 +26,6 @@ const PaymentStatus = () => {
 
   const statusConfig = {
     SUCCESS: {
-      emoji: "✅",
       title: "Payment Successful",
       color: "text-green-300",
       border: "border-green-400/30",
@@ -34,7 +33,6 @@ const PaymentStatus = () => {
       glow: "shadow-[0_0_40px_rgba(34,197,94,0.25)]",
     },
     FAILED: {
-      emoji: "❌",
       title: "Payment Failed",
       color: "text-red-300",
       border: "border-red-400/30",
@@ -42,7 +40,6 @@ const PaymentStatus = () => {
       glow: "shadow-[0_0_40px_rgba(239,68,68,0.25)]",
     },
     PENDING: {
-      emoji: "⏳",
       title: "Payment Pending",
       color: "text-yellow-300",
       border: "border-yellow-400/30",
@@ -68,13 +65,12 @@ const PaymentStatus = () => {
         {loading && (
           <div className="text-center py-20 text-cyan-300">
             <div className="w-12 h-12 mx-auto border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-sm text-gray-400">Checking payment status…</p>
+            <p className="mt-4 text-sm text-gray-400">Checking payment status...</p>
           </div>
         )}
 
         {!loading && !payment && (
           <div className="text-center py-20 backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-10">
-            <div className="text-5xl mb-4">⚠️</div>
             <p className="text-xl font-semibold text-red-300">
               Payment not found
             </p>
@@ -100,7 +96,6 @@ const PaymentStatus = () => {
 
             <div className="relative z-10">
               <div className="text-center mb-8">
-                <div className="text-5xl mb-3">{status.emoji}</div>
                 <h2 className={`text-2xl font-semibold ${status.color}`}>
                   {status.title}
                 </h2>

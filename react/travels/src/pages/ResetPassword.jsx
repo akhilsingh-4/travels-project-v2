@@ -28,7 +28,7 @@ const ResetPassword = () => {
         password,
       });
 
-      toast.success("Password reset successful. Redirecting to login…");
+      toast.success("Password reset successful. Redirecting to login...");
       setTimeout(() => navigate("/login"), 1500);
     } catch {
       toast.error("This reset link is invalid or has expired.");
@@ -48,8 +48,8 @@ const ResetPassword = () => {
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-t-3xl" />
 
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_20px_rgba(34,211,238,0.45)] flex items-center justify-center text-xl">
-            🔁
+          <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_20px_rgba(34,211,238,0.45)] flex items-center justify-center text-sm font-semibold text-white">
+            Reset
           </div>
           <h2 className="text-2xl font-semibold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
             Set new password
@@ -96,7 +96,7 @@ const ResetPassword = () => {
             disabled={loading}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-semibold shadow hover:shadow-cyan-500/30 transition disabled:opacity-60"
           >
-            {loading ? "Resetting password…" : "Reset password"}
+            {loading ? "Resetting password..." : "Reset password"}
           </button>
 
           <div className="text-center text-sm text-gray-400">

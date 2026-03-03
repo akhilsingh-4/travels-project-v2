@@ -65,9 +65,9 @@ const LoginForm = ({ onLogin }) => {
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-3 top-3 text-white"
+              className="absolute right-3 top-3 text-white text-sm"
             >
-              {showPassword ? "🙈" : "👁️"}
+              {showPassword ? "Hide" : "Show"}
             </button>
           </div>
 
@@ -80,7 +80,6 @@ const LoginForm = ({ onLogin }) => {
           </button>
         </form>
 
-        {/* Links Section */}
         <div className="mt-6 text-center text-sm text-gray-300 space-y-3">
           
           <div>

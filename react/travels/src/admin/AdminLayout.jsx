@@ -70,16 +70,16 @@ export default function AdminLayout() {
 
         <nav className="space-y-2">
           <Link to="/admin" className={linkClass("/admin")} onClick={() => setOpen(false)}>
-            📊 Dashboard
+             Dashboard
           </Link>
           <Link to="/admin/buses" className={linkClass("/admin/buses")} onClick={() => setOpen(false)}>
-            🚌 Manage Buses
+             Manage Buses
           </Link>
           <Link to="/admin/bookings" className={linkClass("/admin/bookings")} onClick={() => setOpen(false)}>
-            📄 Manage Bookings
+             Manage Bookings
           </Link>
           <Link to="/admin/scan-ticket" className={linkClass("/admin/scan-ticket")} onClick={() => setOpen(false)}>
-            📷 Scan Ticket
+             Scan Ticket
           </Link>
         </nav>
 
@@ -88,7 +88,7 @@ export default function AdminLayout() {
             onClick={handleLogout}
             className="w-full rounded-xl border border-red-400/30 px-3 py-2 text-sm text-red-300 hover:bg-red-500/10 transition"
           >
-            🚪 Logout
+             Logout
           </button>
 
           <p className="mt-4 text-xs text-gray-500 text-center">

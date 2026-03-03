@@ -10,3 +10,6 @@ db.sqlite3
 
 # Django media (optional)
 media/
+
+
+node_modules

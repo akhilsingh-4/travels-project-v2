@@ -13,10 +13,6 @@ const MyPayments = () => {
         const res = await api.get("/api/payments/my/");
         setPayments(res.data);
 
-        // Optional: info toast when no payments
-        // if (res.data.length === 0) {
-        //   toast.info("No payments found yet");
-        // }
       } catch (err) {
         toast.error("Failed to load payments");
       } finally {
