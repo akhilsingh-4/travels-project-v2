@@ -869,7 +869,7 @@ class EditBookingRequestView(APIView):
         new_seat = booking.seat
         new_journey_date = booking.journey_date
 
-    
+   
         if new_bus_id:
             try:
                 new_bus = Bus.objects.get(id=new_bus_id)
@@ -880,16 +880,18 @@ class EditBookingRequestView(APIView):
             if price_difference > 0:
                 extra_amount += price_difference
 
+      
         if new_seat_id and int(new_seat_id) != booking.seat.id:
             try:
                 new_seat = Seat.objects.get(id=new_seat_id, bus=new_bus)
             except Seat.DoesNotExist:
                 return Response({"error": "Invalid seat"}, status=400)
 
-            edit_fee += 50 
-     
+            edit_fee += 50  
+
+      
         if new_date and str(new_date) != str(booking.journey_date):
-            edit_fee += 100 
+            edit_fee += 100  
             new_journey_date = new_date
 
         total_extra = extra_amount + edit_fee
@@ -919,6 +921,7 @@ class EditBookingRequestView(APIView):
             "extra_amount": total_extra
         })
     
+
 
 class VerifyEditPaymentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -952,11 +955,11 @@ class VerifyEditPaymentView(APIView):
                 user=request.user
             )
 
-        
+            # Free old seat
             booking.seat.is_booked = False
             booking.seat.save()
 
-           
+            # Apply new updates
             if new_bus_id:
                 booking.bus = Bus.objects.get(id=new_bus_id)
 
