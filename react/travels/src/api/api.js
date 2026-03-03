@@ -1,10 +1,12 @@
 import axios from "axios";
 
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: BASE_URL,
   timeout: 15000,
 });
-
 
 api.interceptors.request.use(
   (config) => {
@@ -31,19 +33,18 @@ api.interceptors.response.use(
 
       try {
         const refresh = localStorage.getItem("refresh");
+
         const res = await axios.post(
-          "http://localhost:8000/api/token/refresh/",
+          `${BASE_URL}/api/token/refresh/`,
           { refresh }
         );
 
         const newAccess = res.data.access;
         localStorage.setItem("access", newAccess);
 
-        
         originalRequest.headers.Authorization = `Bearer ${newAccess}`;
         return api(originalRequest);
       } catch (refreshError) {
-       
         localStorage.removeItem("access");
         localStorage.removeItem("refresh");
         window.location.href = "/login";

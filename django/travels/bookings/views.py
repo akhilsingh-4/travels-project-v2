@@ -655,51 +655,7 @@ class BusDetailView(generics.RetrieveAPIView):
         return {"request": self.request}
 
 
-# class BookingView(APIView):
-#     permission_classes = [IsAuthenticated]
 
-#     def post(self, request):
-#         seat_id = request.data.get("seat")
-#         if not seat_id:
-#             return Response({"error": "Seat ID is required"}, status=400)
-
-#         with transaction.atomic():
-#             seat = Seat.objects.select_for_update().select_related("bus").get(id=seat_id)
-
-#             if seat.is_booked:
-#                 return Response({"error": "Seat already booked"}, status=400)
-
-#             booking = Booking.objects.create(user=request.user, bus=seat.bus, seat=seat)
-#             seat.is_booked = True
-#             seat.save()
-
-#         payment = Payment.objects.filter(
-#             user=request.user,
-#             status="SUCCESS",
-#             booking__isnull=True
-#         ).order_by("-created_at").first()
-
-#         if payment:
-#             payment.booking = booking
-#             payment.save()
-
-#         if request.user.email:
-#             Util.send_templated_email(
-#                 subject="Booking Confirmed - Travels App",
-#                 template_name="emails/booking_confirmed.html",
-#                 context={
-#                     "username": request.user.username,
-#                     "bus_name": seat.bus.bus_name,
-#                     "origin": seat.bus.origin,
-#                     "destination": seat.bus.destination,
-#                     "seat_number": seat.seat_number,
-#                     "price": seat.bus.price,
-#                     "link": "http://localhost:5173/my-bookings",
-#                 },
-#                 to_email=request.user.email
-#             )
-
-#         return Response(BookingSerializer(booking).data, status=201)
 
 
 class CancelBookingView(APIView):
@@ -955,11 +911,10 @@ class VerifyEditPaymentView(APIView):
                 user=request.user
             )
 
-            # Free old seat
+        
             booking.seat.is_booked = False
             booking.seat.save()
 
-            # Apply new updates
             if new_bus_id:
                 booking.bus = Bus.objects.get(id=new_bus_id)
 
