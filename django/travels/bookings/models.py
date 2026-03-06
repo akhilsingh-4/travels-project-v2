@@ -31,10 +31,24 @@ class Seat(models.Model):
 
 
 class Booking(models.Model):
+    STATUS_CONFIRMED = "CONFIRMED"
+    STATUS_EXPIRED = "EXPIRED"
+    STATUS_CANCELLED = "CANCELLED"
+    STATUS_CHOICES = [
+        (STATUS_CONFIRMED, "Confirmed"),
+        (STATUS_EXPIRED, "Expired"),
+        (STATUS_CANCELLED, "Cancelled"),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     bus = models.ForeignKey(Bus, on_delete=models.CASCADE)
     seat = models.ForeignKey(Seat, on_delete=models.CASCADE)
     journey_date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_CONFIRMED,
+    )
     booking_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -56,7 +70,7 @@ class Payment(models.Model):
             ("FAILED", "FAILED"),
             ("REFUNDED", "REFUNDED"),
         ],
-        default="CREATED"
+        default="CREATED"  
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

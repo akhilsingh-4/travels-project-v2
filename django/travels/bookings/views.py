@@ -705,6 +705,13 @@ class MyBookingsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        today = timezone.localdate()
+        Booking.objects.filter(
+            user=request.user,
+            journey_date__lt=today,
+            status=Booking.STATUS_CONFIRMED
+        ).update(status=Booking.STATUS_EXPIRED)
+
         bookings = Booking.objects.filter(user=request.user)
         serializer = BookingSerializer(bookings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -818,6 +825,25 @@ class EditBookingRequestView(APIView):
         except Booking.DoesNotExist:
             return Response({"error": "Booking not found"}, status=404)
 
+        today = timezone.localdate()
+        if booking.journey_date and booking.journey_date < today:
+            return Response(
+                {"error": "Cannot edit booking for past journeys"},
+                status=400
+            )
+
+        if new_date:
+            try:
+                parsed_new_date = date.fromisoformat(str(new_date))
+            except ValueError:
+                return Response({"error": "Invalid journey date format"}, status=400)
+
+            if parsed_new_date < today:
+                return Response(
+                    {"error": "Journey date cannot be in the past"},
+                    status=400
+                )
+
         extra_amount = 0
         edit_fee = 0
 
@@ -837,7 +863,13 @@ class EditBookingRequestView(APIView):
                 extra_amount += price_difference
 
       
-        if new_seat_id and int(new_seat_id) != booking.seat.id:
+        if new_seat_id:
+            try:
+                new_seat_id = int(new_seat_id)
+            except (TypeError, ValueError):
+                return Response({"error": "seat_id must be a valid integer"}, status=400)
+
+        if new_seat_id and new_seat_id != booking.seat.id:
             try:
                 new_seat = Seat.objects.get(id=new_seat_id, bus=new_bus)
             except Seat.DoesNotExist:
@@ -853,6 +885,15 @@ class EditBookingRequestView(APIView):
         total_extra = extra_amount + edit_fee
 
         if total_extra <= 0:
+            with transaction.atomic():
+                if new_bus_id:
+                    booking.bus = new_bus
+                if new_seat_id and new_seat.id != booking.seat.id:
+                    booking.seat = new_seat
+                if new_date and str(new_date) != str(booking.journey_date):
+                    booking.journey_date = new_date
+                booking.save()
+
             return Response({"message": "No extra payment required"})
 
         amount = int(total_extra * 100)
@@ -910,6 +951,25 @@ class VerifyEditPaymentView(APIView):
                 id=booking_id,
                 user=request.user
             )
+
+            today = timezone.localdate()
+            if booking.journey_date and booking.journey_date < today:
+                return Response(
+                    {"error": "Cannot edit booking for past journeys"},
+                    status=400
+                )
+
+            if new_date:
+                try:
+                    parsed_new_date = date.fromisoformat(str(new_date))
+                except ValueError:
+                    return Response({"error": "Invalid journey date format"}, status=400)
+
+                if parsed_new_date < today:
+                    return Response(
+                        {"error": "Journey date cannot be in the past"},
+                        status=400
+                    )
 
         
             booking.seat.is_booked = False

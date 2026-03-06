@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../api/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const SkeletonCard = () => (
@@ -21,10 +21,13 @@ const BusList = () => {
   const [destination, setDestination] = useState("");
   const [journeyDate, setJourneyDate] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sortBy, setSortBy] = useState(null);
+  const [sortBy] = useState(null);
+  const [editingBusId, setEditingBusId] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editBookingId = searchParams.get("edit_booking");
 
-  const fetchBuses = async () => {
+  const fetchBuses = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get("/api/buses/", {
@@ -43,11 +46,11 @@ const BusList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [origin, destination]);
 
   useEffect(() => {
     fetchBuses();
-  }, [origin, destination]);
+  }, [fetchBuses]);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("recent_buses") || "[]");
@@ -93,9 +96,106 @@ const BusList = () => {
     navigate(`/bus/${bus.id}?date=${journeyDate}`);
   };
 
+  const loadRazorpay = () =>
+    new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+
+  const getErrorMessage = (err, fallback) =>
+    err?.response?.data?.error ||
+    err?.response?.data?.detail ||
+    err?.response?.data?.message ||
+    fallback;
+
+  const verifyEditPayment = async (payload, response) => {
+    await api.post("/api/bookings/edit/verify/", {
+      booking_id: Number(editBookingId),
+      bus_id: payload.bus_id,
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_signature: response.razorpay_signature,
+    });
+    toast.success("Booking updated successfully");
+    navigate("/my-bookings");
+  };
+
+  const startBusEditFlow = async (bus) => {
+    if (!editBookingId) return;
+    const payload = { bus_id: bus.id };
+
+    setEditingBusId(bus.id);
+    try {
+      const res = await api.post(
+        `/api/bookings/${editBookingId}/edit/request/`,
+        payload
+      );
+      const data = res.data || {};
+
+      if (data.order_id && data.key) {
+        if (data.extra_amount) {
+          toast.info(`Extra payment required: INR ${data.extra_amount}`);
+        }
+
+        const ok = await loadRazorpay();
+        if (!ok) {
+          toast.error("Failed to load payment gateway");
+          return;
+        }
+
+        await new Promise((resolve, reject) => {
+          const options = {
+            key: data.key,
+            amount: data.amount,
+            currency: data.currency || "INR",
+            name: "BusBooking",
+            description: "Booking Modification Charges",
+            order_id: data.order_id,
+            handler: async (response) => {
+              try {
+                await verifyEditPayment(payload, response);
+                resolve();
+              } catch (error) {
+                reject(error);
+              }
+            },
+            theme: { color: "#22d3ee" },
+          };
+          const razorpay = new window.Razorpay(options);
+          razorpay.on("payment.failed", () => reject(new Error("Payment failed")));
+          razorpay.open();
+        });
+        return;
+      }
+
+      toast.success(data.message || "Booking updated successfully");
+      navigate("/my-bookings");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to change bus"));
+    } finally {
+      setEditingBusId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white">
       <div className="mx-auto max-w-7xl px-4 py-12 space-y-20">
+        {editBookingId && (
+          <section className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-amber-200">
+            <p className="font-semibold">Edit Mode Active</p>
+            <p className="text-sm text-amber-100/80">
+              Select a bus to update booking #{editBookingId}.
+            </p>
+          </section>
+        )}
+
         <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
@@ -148,7 +248,7 @@ const BusList = () => {
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <p className="text-sm text-gray-400 mb-3">🔥 Trending Routes</p>
+            <p className="text-sm text-gray-400 mb-3"> Trending Routes</p>
             <div className="space-y-2">
               {trendingRoutes.map((route, idx) => (
                 <div
@@ -247,10 +347,17 @@ const BusList = () => {
                     </p>
 
                     <button
-                      onClick={() => handleViewSeats(bus)}
-                      className="mt-auto w-full rounded-xl bg-gradient-to-r from-cyan-400 to-purple-600 py-3 font-semibold text-black"
+                      onClick={() =>
+                        editBookingId ? startBusEditFlow(bus) : handleViewSeats(bus)
+                      }
+                      disabled={!!editBookingId && editingBusId === bus.id}
+                      className="mt-auto w-full rounded-xl bg-gradient-to-r from-cyan-400 to-purple-600 py-3 font-semibold text-black disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      View Seats
+                      {editBookingId
+                        ? editingBusId === bus.id
+                          ? "Processing..."
+                          : "Select This Bus"
+                        : "View Seats"}
                     </button>
                   </div>
                 </div>

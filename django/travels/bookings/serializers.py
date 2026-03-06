@@ -95,13 +95,27 @@ class BusSearializers(serializers.ModelSerializer):
 
 class BookingSerializer(serializers.ModelSerializer):
     bus = serializers.StringRelatedField()
-    seat = serializers.StringRelatedField()  
+    seat = serializers.StringRelatedField()
     user = serializers.StringRelatedField()
+    bus_id = serializers.IntegerField(source="bus.id", read_only=True)
+    seat_id = serializers.IntegerField(source="seat.id", read_only=True)
+    seat_number = serializers.CharField(source="seat.seat_number", read_only=True)
 
     class Meta:
         model = Booking
-        fields = "__all__"
-        read_only_fields = ["user", "booking_time", "bus", "seat"]
+        fields = [
+            "id",
+            "user",
+            "bus",
+            "bus_id",
+            "seat",
+            "seat_id",
+            "seat_number",
+            "journey_date",
+            "status",
+            "booking_time",
+        ]
+        read_only_fields = ["user", "booking_time", "bus", "seat", "status"]
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:

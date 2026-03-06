@@ -7,9 +7,11 @@ const BusSeats = () => {
   const [bus, setBus] = useState(null);
   const [seats, setSeats] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [processingSeatId, setProcessingSeatId] = useState(null);
   const { busId } = useParams();
   const [searchParams] = useSearchParams();
   const journeyDate = searchParams.get("date");
+  const editBookingId = searchParams.get("edit_booking");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +25,7 @@ const BusSeats = () => {
         });
         setBus(res.data);
         setSeats(res.data.seats || []);
-      } catch (err) {
+      } catch {
         toast.error("Failed to load bus details");
       } finally {
         setLoading(false);
@@ -34,12 +36,89 @@ const BusSeats = () => {
 
   const loadRazorpay = () =>
     new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.onload = () => resolve(true);
       script.onerror = () => resolve(false);
       document.body.appendChild(script);
     });
+
+  const getErrorMessage = (err, fallback) =>
+    err?.response?.data?.error ||
+    err?.response?.data?.detail ||
+    err?.response?.data?.message ||
+    fallback;
+
+  const handleEditSeat = async (seatId) => {
+    if (!editBookingId) return;
+
+    const payload = { seat_id: seatId };
+    setProcessingSeatId(seatId);
+    try {
+      const res = await api.post(
+        `/api/bookings/${editBookingId}/edit/request/`,
+        payload
+      );
+      const data = res.data || {};
+
+      if (data.order_id && data.key) {
+        if (data.extra_amount) {
+          toast.info(`Extra payment required: INR ${data.extra_amount}`);
+        }
+
+        const ok = await loadRazorpay();
+        if (!ok) {
+          toast.error("Failed to load payment gateway");
+          return;
+        }
+
+        await new Promise((resolve, reject) => {
+          const options = {
+            key: data.key,
+            amount: data.amount,
+            currency: data.currency || "INR",
+            name: "BusBooking",
+            description: "Booking Modification Charges",
+            order_id: data.order_id,
+            handler: async (response) => {
+              try {
+                await api.post("/api/bookings/edit/verify/", {
+                  booking_id: Number(editBookingId),
+                  seat_id: seatId,
+                  journey_date: journeyDate || undefined,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                });
+                toast.success("Booking updated successfully");
+                resolve();
+              } catch (error) {
+                reject(error);
+              }
+            },
+            theme: { color: "#22d3ee" },
+          };
+          const razorpay = new window.Razorpay(options);
+          razorpay.on("payment.failed", () => reject(new Error("Payment failed")));
+          razorpay.open();
+        });
+
+        navigate("/my-bookings");
+        return;
+      }
+
+      toast.success(data.message || "Booking updated successfully");
+      navigate("/my-bookings");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to update seat"));
+    } finally {
+      setProcessingSeatId(null);
+    }
+  };
 
   const handlePayAndBook = async (seatId) => {
     try {
@@ -87,7 +166,7 @@ const BusSeats = () => {
 
             toast.success("Payment successful. Your seat is confirmed.");
             navigate("/my-bookings");
-          } catch (err) {
+          } catch {
             toast.error("Payment verification failed.");
           }
         },
@@ -95,7 +174,7 @@ const BusSeats = () => {
       };
 
       new window.Razorpay(options).open();
-    } catch (err) {
+    } catch {
       toast.error("Seat unavailable. Try another seat.");
     }
   };
@@ -106,6 +185,12 @@ const BusSeats = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white py-12 px-4">
       <div className="mx-auto max-w-5xl space-y-8">
+        {editBookingId && (
+          <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-amber-200 text-sm">
+            Edit Mode: updating booking #{editBookingId}
+          </div>
+        )}
+
         {journeyDate && (
           <div className="text-center text-sm text-gray-400">
             Journey Date:{" "}
@@ -152,7 +237,7 @@ const BusSeats = () => {
         {!loading && (
           <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
             <h3 className="mb-6 text-xl font-semibold text-cyan-300 text-center">
-              Choose Your Seat
+              {editBookingId ? "Choose New Seat" : "Choose Your Seat"}
             </h3>
 
             <div className="flex justify-center mb-6">
@@ -168,16 +253,20 @@ const BusSeats = () => {
                     seat ? (
                       <button
                         key={seat.id}
-                        disabled={seat.is_booked}
-                        onClick={() => handlePayAndBook(seat.id)}
+                        onClick={() =>
+                          editBookingId
+                            ? handleEditSeat(seat.id)
+                            : handlePayAndBook(seat.id)
+                        }
+                        disabled={seat.is_booked || processingSeatId === seat.id}
                         className={`h-12 w-12 rounded-xl text-sm font-semibold border transition
                           ${
-                            seat.is_booked
+                            seat.is_booked || processingSeatId === seat.id
                               ? "cursor-not-allowed border-white/10 bg-white/5 text-gray-500"
                               : "border-cyan-400/40 bg-black/40 text-cyan-300 hover:bg-cyan-500/10 hover:scale-105"
                           }`}
                       >
-                        {seat.seat_number}
+                        {processingSeatId === seat.id ? "..." : seat.seat_number}
                       </button>
                     ) : (
                       <div key={idx} className="w-12" />
@@ -188,7 +277,9 @@ const BusSeats = () => {
             </div>
 
             <p className="mt-6 text-center text-sm text-gray-500">
-              Select an available seat to proceed with payment
+              {editBookingId
+                ? `Select an available seat to update booking #${editBookingId}`
+                : "Select an available seat to proceed with payment"}
             </p>
           </div>
         )}
