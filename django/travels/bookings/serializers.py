@@ -19,27 +19,20 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return user
 
 
-
-
 class UserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.SerializerMethodField()
+    avatar = serializers.ImageField(source="profile.avatar", required=False)
 
     class Meta:
         model = User
         fields = ["id", "username", "email", "first_name", "last_name", "avatar"]
         read_only_fields = ["id", "username"]
 
-    def get_avatar(self, obj):
-        request = self.context.get("request")
-        if hasattr(obj, "profile") and obj.profile.avatar:
-            return request.build_absolute_uri(obj.profile.avatar.url)
-        return None
-
     def update(self, instance, validated_data):
         profile_data = validated_data.pop("profile", {})
 
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+        instance.first_name = validated_data.get("first_name", instance.first_name)
+        instance.last_name = validated_data.get("last_name", instance.last_name)
+        instance.email = validated_data.get("email", instance.email)
         instance.save()
 
         profile, _ = Profile.objects.get_or_create(user=instance)
@@ -50,35 +43,31 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         return instance
 
+
 class SeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seat
         fields = ["id", "seat_number", "is_booked"]
 
 
-class BusSearializers(serializers.ModelSerializer):
+class BusSerializers(serializers.ModelSerializer):
     seats = serializers.SerializerMethodField()
-    image = serializers.SerializerMethodField()
+    image = serializers.ImageField(read_only=True)
 
     class Meta:
         model = Bus
         fields = "__all__"
 
-    def get_image(self, obj):
-        request = self.context.get("request")
-        if obj.image:
-            return request.build_absolute_uri(obj.image.url)
-        return None
-
     def get_seats(self, obj):
         request = self.context.get("request")
-        date = request.query_params.get("date")
+        date = request.query_params.get("date") if request else None
 
         seats = Seat.objects.filter(bus=obj)
         result = []
 
         for seat in seats:
             is_booked = False
+
             if date:
                 is_booked = Booking.objects.filter(
                     seat=seat,
@@ -91,12 +80,14 @@ class BusSearializers(serializers.ModelSerializer):
                 "is_booked": is_booked,
             })
 
-        return result 
+        return result
+
 
 class BookingSerializer(serializers.ModelSerializer):
     bus = serializers.StringRelatedField()
     seat = serializers.StringRelatedField()
     user = serializers.StringRelatedField()
+
     bus_id = serializers.IntegerField(source="bus.id", read_only=True)
     seat_id = serializers.IntegerField(source="seat.id", read_only=True)
     seat_number = serializers.CharField(source="seat.seat_number", read_only=True)
@@ -117,11 +108,11 @@ class BookingSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["user", "booking_time", "bus", "seat", "status"]
 
+
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = "__all__"
-
 
 
 class AdminBusSerializer(serializers.ModelSerializer):
