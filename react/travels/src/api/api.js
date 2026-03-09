@@ -10,9 +10,20 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    const url = typeof config.url === "string" ? config.url : "";
+    const authExcludedPaths = [
+      "/api/login/",
+      "/api/register/",
+      "/api/token/refresh/",
+      "/api/forgot-password/",
+      "/api/reset-password/",
+    ];
+    const shouldSkipAuth = authExcludedPaths.some((path) => url.includes(path));
     const access = localStorage.getItem("access");
-    if (access) {
+    if (access && !shouldSkipAuth) {
       config.headers.Authorization = `Bearer ${access}`;
+    } else if (config.headers?.Authorization) {
+      delete config.headers.Authorization;
     }
     return config;
   },

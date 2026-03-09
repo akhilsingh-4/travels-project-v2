@@ -70,7 +70,7 @@ const UserBookings = () => {
     if (!loaded) {
       throw new Error("Failed to load payment gateway");
     }
-
+ 
     await new Promise((resolve, reject) => {
       const options = {
         key: data.key,
