@@ -62,10 +62,15 @@ CORS_ALLOWED_ORIGINS = [
     "https://travels-project-v2.vercel.app",
 ]
 
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
+
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
     "https://travels-project-v2.vercel.app",
+    "https://*.vercel.app",
     "https://travels-backend-ge3s.onrender.com",
 ]
 
