@@ -71,11 +71,25 @@ class SeatSerializer(serializers.ModelSerializer):
 
 class BusSerializers(serializers.ModelSerializer):
     seats = serializers.SerializerMethodField()
-    image = serializers.ImageField(read_only=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Bus
         fields = "__all__"
+
+    def get_image(self, obj):
+        image = getattr(obj, "image", None)
+
+        if not image:
+            return None
+
+        try:
+            image_url = image.url
+        except Exception:
+            return None
+
+        request = self.context.get("request")
+        return request.build_absolute_uri(image_url) if request else image_url
 
     def get_seats(self, obj):
         request = self.context.get("request")
