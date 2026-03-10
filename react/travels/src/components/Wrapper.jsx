@@ -2,6 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import api from "../api/api";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+const resolveMediaUrl = (value) => {
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${API_BASE_URL}${value.startsWith("/") ? value : `/${value}`}`;
+};
+
 const Wrapper = ({ token, handleLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,7 +38,7 @@ const Wrapper = ({ token, handleLogout }) => {
       ? "text-cyan-300 bg-cyan-500/10 border border-cyan-400/30 shadow-[0_0_12px_rgba(34,211,238,0.25)]"
       : "text-gray-300 hover:text-cyan-300 hover:bg-white/5 border border-transparent";
 
-  const avatarUrl = me?.avatar ? `http://localhost:8000${me.avatar}` : null;
+  const avatarUrl = resolveMediaUrl(me?.avatar_url || me?.avatar);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white">

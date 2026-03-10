@@ -3,6 +3,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile, updateProfile } from "../redux/slices/profileSlice";
 import { toast } from "react-toastify";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+const resolveMediaUrl = (value) => {
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${API_BASE_URL}${value.startsWith("/") ? value : `/${value}`}`;
+};
+
 const UserProfile = () => {
 
   const dispatch = useDispatch();
@@ -29,9 +38,7 @@ const UserProfile = () => {
         first_name: user.first_name || "",
         last_name: user.last_name || "",
         avatar: null,
-        avatar_url: user.avatar
-          ? `http://localhost:8000${user.avatar}`
-          : "",
+        avatar_url: resolveMediaUrl(user.avatar_url || user.avatar),
       });
     }
   }, [user]);
