@@ -20,7 +20,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(source="profile.avatar", required=False)
+    avatar = serializers.ImageField(source="profile.avatar", required=False, allow_null=True)
 
     class Meta:
         model = User
@@ -60,7 +60,8 @@ class BusSerializers(serializers.ModelSerializer):
 
     def get_seats(self, obj):
         request = self.context.get("request")
-        date = request.query_params.get("date") if request else None
+        params = getattr(request, "query_params", None) or getattr(request, "GET", None)
+        date = params.get("date") if params else None
 
         seats = Seat.objects.filter(bus=obj)
         result = []

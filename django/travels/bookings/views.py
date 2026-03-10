@@ -18,7 +18,7 @@ from .utils import Util
 from .models import Bus, Seat, Booking, Payment, Ticket
 from .serializers import (
     UserRegisterSerializer,
-    BusSearializers,
+    BusSerializers,
     BookingSerializer,
     UserProfileSerializer,
     PaymentSerializer,
@@ -629,7 +629,7 @@ class PaymentStatusView(APIView):
 
 
 class BusListCreateApiView(generics.ListAPIView):
-    serializer_class = BusSearializers
+    serializer_class = BusSerializers
 
     def get_queryset(self):
         queryset = Bus.objects.filter(is_active=True)
@@ -649,7 +649,7 @@ class BusListCreateApiView(generics.ListAPIView):
 
 class BusDetailView(generics.RetrieveAPIView):
     queryset = Bus.objects.all()
-    serializer_class = BusSearializers
+    serializer_class = BusSerializers
 
     def get_serializer_context(self):
         return {"request": self.request}
