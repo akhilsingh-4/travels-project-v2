@@ -20,7 +20,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(source="profile.avatar", required=False, allow_null=True)
+    avatar = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     class Meta:
         model = User
@@ -28,7 +28,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "username"]
 
     def update(self, instance, validated_data):
-        profile_data = validated_data.pop("profile", {})
+        avatar = validated_data.pop("avatar", serializers.empty)
 
         instance.first_name = validated_data.get("first_name", instance.first_name)
         instance.last_name = validated_data.get("last_name", instance.last_name)
@@ -37,11 +37,30 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         profile, _ = Profile.objects.get_or_create(user=instance)
 
-        if "avatar" in profile_data:
-            profile.avatar = profile_data["avatar"]
+        if avatar is not serializers.empty:
+            profile.avatar = avatar
             profile.save()
 
         return instance
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        try:
+            profile = instance.profile
+        except Profile.DoesNotExist:
+            profile = None
+
+        avatar = getattr(profile, "avatar", None)
+        request = self.context.get("request")
+
+        if avatar:
+            avatar_url = avatar.url
+            data["avatar"] = request.build_absolute_uri(avatar_url) if request else avatar_url
+        else:
+            data["avatar"] = None
+
+        return data
 
 
 class SeatSerializer(serializers.ModelSerializer):
