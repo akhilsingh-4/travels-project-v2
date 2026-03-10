@@ -2,7 +2,12 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
-import cloudinary
+
+try:
+    import cloudinary
+except ImportError:
+    cloudinary = None
+
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,9 +37,13 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'bookings',
-    'cloudinary',
-    'cloudinary_storage',
 ]
+
+if cloudinary is not None:
+    INSTALLED_APPS += [
+        'cloudinary',
+        'cloudinary_storage',
+    ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -133,7 +142,7 @@ CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
 CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
 CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET") or os.getenv("CLOUDINARY_SECRET_KEY")
 
-if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+if cloudinary is not None and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     cloudinary.config(
         cloud_name=CLOUDINARY_CLOUD_NAME,
         api_key=CLOUDINARY_API_KEY,
