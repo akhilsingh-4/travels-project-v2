@@ -16,6 +16,8 @@ except ImportError:
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+SQLITE_PATH = Path(os.getenv("SQLITE_PATH", str(BASE_DIR / "db.sqlite3")))
+MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", str(BASE_DIR / "media")))
 
 SECRET_KEY = os.getenv(
     "SECRET_KEY",
@@ -104,23 +106,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'travels.wsgi.application'
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if DATABASE_URL and dj_database_url is not None:
-    DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=not DEBUG,
-        )
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': SQLITE_PATH,
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -137,7 +128,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
