@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
-import api from "../api/api";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProfile } from "../redux/slices/profileSlice";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -12,22 +13,19 @@ const resolveMediaUrl = (value) => {
 };
 
 const Wrapper = ({ token, handleLogout }) => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const [me, setMe] = useState(null);
   const [open, setOpen] = useState(false);
+  const me = useSelector((state) => state.profile.user);
 
   useEffect(() => {
     if (!token) {
-      setMe(null);
       return;
     }
 
-    api
-      .get("/api/profile/")
-      .then((res) => setMe(res.data))
-      .catch(() => setMe(null));
-  }, [token]);
+    dispatch(fetchProfile());
+  }, [dispatch, token]);
 
   useEffect(() => {
     setOpen(false);
@@ -84,9 +82,7 @@ const Wrapper = ({ token, handleLogout }) => {
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-cyan-300 font-semibold">
-                        {me.username?.[0]?.toUpperCase()}
-                      </span>
+                      <span className="text-cyan-300 text-xs font-semibold uppercase">Me</span>
                     )}
                   </div>
                 )}

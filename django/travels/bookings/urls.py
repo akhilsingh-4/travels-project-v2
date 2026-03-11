@@ -9,7 +9,6 @@ urlpatterns = [
     path("my/bookings/", MyBookingsView.as_view()),
     path("profile/", UserProfileView.as_view()),
     path('bookings/cancel/', CancelBookingView.as_view(), name='cancel-booking'),
-    # path('booking/', BookingView.as_view(), name='bookings'),
     path("password-reset/request/", RequestPasswordResetView.as_view()),
     path("password-reset/confirm/", ConfirmPasswordResetView.as_view()),
     path("payments/create-order/", CreatePaymentOrderView.as_view()),
