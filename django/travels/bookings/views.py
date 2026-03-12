@@ -337,6 +337,9 @@ class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        from .models import Profile
+
+        Profile.objects.get_or_create(user=request.user)
         serializer = UserProfileSerializer(
             request.user,
             context={"request": request}

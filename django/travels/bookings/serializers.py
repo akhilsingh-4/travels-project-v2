@@ -46,17 +46,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
 
-        try:
-            profile = instance.profile
-        except Profile.DoesNotExist:
-            profile = None
+        profile = Profile.objects.filter(user=instance).first()
 
         avatar = getattr(profile, "avatar", None)
         request = self.context.get("request")
 
         if avatar:
-            avatar_url = avatar.url
-            data["avatar"] = request.build_absolute_uri(avatar_url) if request else avatar_url
+            try:
+                avatar_url = avatar.url
+                data["avatar"] = request.build_absolute_uri(avatar_url) if request else avatar_url
+            except Exception:
+                data["avatar"] = None
         else:
             data["avatar"] = None
 
