@@ -1,3 +1,4 @@
+import logging
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -44,6 +45,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 from django.db.models import Sum
 from datetime import date as date
+
+logger = logging.getLogger(__name__)
 
 
 def generate_ticket_pdf_bytes(ticket):
@@ -339,12 +342,19 @@ class UserProfileView(APIView):
     def get(self, request):
         from .models import Profile
 
-        Profile.objects.get_or_create(user=request.user)
-        serializer = UserProfileSerializer(
-            request.user,
-            context={"request": request}
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            Profile.objects.get_or_create(user=request.user)
+            serializer = UserProfileSerializer(
+                request.user,
+                context={"request": request}
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception:
+            logger.exception("Failed to load profile for user_id=%s", request.user.id)
+            return Response(
+                {"error": "Unable to load profile"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def put(self, request):
         serializer = UserProfileSerializer(
