@@ -1,0 +1,2556 @@
+[
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$yuNUPomXY4pYxDQXXPdH3s$jTeX/JVpD0PyRoGHe8BGaFGvf79wKSdCBGoskjRdqRc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "akhil",
+    "first_name": "Akhil",
+    "last_name": "Singh",
+    "email": "2426akhil@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-10T07:37:26Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$Yr3Vu7UpeejnoMa7YTD1r7$ZzJ/CqQfGjKQtG9LKc9C144kz8pOrDftI+f5ENfRt/w=",
+    "last_login": "2026-03-10T12:55:43.407Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-02-10T07:44:29.675Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$gebJ5O7FIpVsP4NV3DNJQ6$ap2lGRMutAQ/pLV+tBKTwGKEBdlw6Z1feoQLPrNfmZs=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "test",
+    "first_name": "",
+    "last_name": "",
+    "email": "test@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-16T06:12:53.050Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "541cmjtnvw2zhubo1hoayblb1vrcuc00",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQAP-yZ0MoLWzp0btvILssSNXQpLQn499Nkx70OjOZNwTatxL2ltYwC0xg4PLLmOIz1UPIg-p9UXGp2zqzOhJ12qZui6TX9Wz_BoVagQmiMKKLIpx6jV2fonMoXeastdXOsHix4li8yeTHwRDqMTvNA6L1ZOHzBQaBODs:1vy1bH:05WhHcjtqwYm3bqG9eOUnyH2g4erYkfGh8O6bP651To",
+    "expire_date": "2026-03-19T05:50:19.369Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "72v452ub7njd471xg48mio2zd5g6j7t9",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_y1qahtR_K0j1nIO-HRQ0kFFbGuxsSFrqdmcwbBty3MuxV12ES6MDB5ZcR8lPnQ8gD5_tieJm3dSJzJOa01fSL6Ot2tn-DgrVAB74l1JRaJ95evc0NNphGJ5bH4DSoi2Hk6L2lnJrIUZISEgaxzCmTwOcL3V04Ww:1vpiSe:DcfkqDHeWfN5h0WaaFP7Q4atsezRNs10d3SjVuUUB0Q",
+    "expire_date": "2026-02-24T07:47:04.852Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "i5u5hs69bsarv989tz6prxqbob0gu8j0",
+  "fields": {
+    "session_data": ".eJxVjMsKwyAQAP9lz0XWiK8ce-83iLprTVsUYnIq_fcSyKG9zgzzhhD3rYZ98BoWghkmuPyyFPOT2yHoEdu9i9zbti5JHIk47RC3Tvy6nu3foMZRYQbljOKEuRTlyHjPGb2diqasZJKkDVkZlaWkkdElKgXRR-2NMsg2W_h8Ae9MOA8:1vzwch:duj-ATd-krkP96U7MzWByOhOz71_N3LpUOALXWGfP80",
+    "expire_date": "2026-03-24T12:55:43.416Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ieixisza5tzf36xv3xudtl8kw4xbptvs",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_y1qahtR_K0j1nIO-HRQ0kFFbGuxsSFrqdmcwbBty3MuxV12ES6MDB5ZcR8lPnQ8gD5_tieJm3dSJzJOa01fSL6Ot2tn-DgrVAB74l1JRaJ95evc0NNphGJ5bH4DSoi2Hk6L2lnJrIUZISEgaxzCmTwOcL3V04Ww:1vtK2I:4VOQD9Abe6-BXlqj8x7avcAGp2jsVMN84bXeObagrd8",
+    "expire_date": "2026-03-06T06:30:46.641Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "wd7utvqkvtqo2tdhgncexdyc7wt7iijm",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_y1qahtR_K0j1nIO-HRQ0kFFbGuxsSFrqdmcwbBty3MuxV12ES6MDB5ZcR8lPnQ8gD5_tieJm3dSJzJOa01fSL6Ot2tn-DgrVAB74l1JRaJ95evc0NNphGJ5bH4DSoi2Hk6L2lnJrIUZISEgaxzCmTwOcL3V04Ww:1vqn4F:08sz6ItQRW5yr6lqLInMVtBu05wOadDwUmiAgHoxgWo",
+    "expire_date": "2026-02-27T06:54:19.705Z"
+  }
+},
+{
+  "model": "bookings.bus",
+  "pk": 1,
+  "fields": {
+    "bus_name": "Hyderabad",
+    "number": "Ts 13jx 4321",
+    "origin": "Hyderabad",
+    "destination": "Vikarabad",
+    "features": "AC",
+    "start_time": "07:48:04",
+    "reach_time": "12:00:00",
+    "no_of_seats": 22,
+    "price": "99.99",
+    "is_active": true,
+    "image": "media/buses/download_lk2veg"
+  }
+},
+{
+  "model": "bookings.bus",
+  "pk": 2,
+  "fields": {
+    "bus_name": "Kaveri",
+    "number": "Ap 13jx 4321",
+    "origin": "Hyderabad",
+    "destination": "Vikarabad",
+    "features": "AC , Sleeper",
+    "start_time": "06:00:00",
+    "reach_time": "12:00:00",
+    "no_of_seats": 32,
+    "price": "1299.00",
+    "is_active": true,
+    "image": "media/buses/download_1_gosiwa"
+  }
+},
+{
+  "model": "bookings.bus",
+  "pk": 3,
+  "fields": {
+    "bus_name": "OLA",
+    "number": "Ts 13jx 1234",
+    "origin": "Hyderabad",
+    "destination": "Goa",
+    "features": "AC , Sleeper",
+    "start_time": "06:00:00",
+    "reach_time": "00:00:00",
+    "no_of_seats": 32,
+    "price": "2999.00",
+    "is_active": true,
+    "image": "media/buses/ola_fn2pfc"
+  }
+},
+{
+  "model": "bookings.bus",
+  "pk": 4,
+  "fields": {
+    "bus_name": "OLA",
+    "number": "Ts 13jx 2896",
+    "origin": "Goa",
+    "destination": "Hyderabad",
+    "features": "AC, Sleeper",
+    "start_time": "06:00:00",
+    "reach_time": "00:00:00",
+    "no_of_seats": 32,
+    "price": "2999.00",
+    "is_active": true,
+    "image": "media/buses/ola_ifxe4g"
+  }
+},
+{
+  "model": "bookings.bus",
+  "pk": 5,
+  "fields": {
+    "bus_name": "Volvo",
+    "number": "Ts 13jx 0011",
+    "origin": "Hyderabad",
+    "destination": "Bangalore",
+    "features": "AC, Sleeper",
+    "start_time": "06:30:00",
+    "reach_time": "23:45:00",
+    "no_of_seats": 32,
+    "price": "1300.00",
+    "is_active": true,
+    "image": "media/buses/volvo_ksndqm"
+  }
+},
+{
+  "model": "bookings.bus",
+  "pk": 6,
+  "fields": {
+    "bus_name": "OLA",
+    "number": "Ts 34 gx1234",
+    "origin": "Hyderbad",
+    "destination": "Goa",
+    "features": "AC, SLEEPER",
+    "start_time": "18:30:00",
+    "reach_time": "06:30:00",
+    "no_of_seats": 32,
+    "price": "1234.00",
+    "is_active": true,
+    "image": ""
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 1,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S1",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 2,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S2",
+    "is_booked": false,
+    "is_held": true,
+    "hold_expires_at": "2026-02-20T05:47:12.919Z"
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 3,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S3",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 4,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S4",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 5,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S5",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 6,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S6",
+    "is_booked": false,
+    "is_held": true,
+    "hold_expires_at": "2026-02-18T07:57:29.213Z"
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 7,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S7",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 8,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S8",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 9,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S9",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 10,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S10",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 11,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S11",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 12,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S12",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 13,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S13",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 14,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S14",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 15,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S15",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 16,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S16",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 17,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S17",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 18,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S18",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 19,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S19",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 20,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S20",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 21,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S21",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 22,
+  "fields": {
+    "bus": 1,
+    "seat_number": "S22",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 23,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S1",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 24,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S2",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 25,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S3",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 26,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S4",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 27,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S5",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 28,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S6",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 29,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S7",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 30,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S8",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 31,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S9",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 32,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S10",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 33,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S11",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 34,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S12",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 35,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S13",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 36,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S14",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 37,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S15",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 38,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S16",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 39,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S17",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 40,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S18",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 41,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S19",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 42,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S20",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 43,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S21",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 44,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S22",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 45,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S23",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 46,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S24",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 47,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S25",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 48,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S26",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 49,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S27",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 50,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S28",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 51,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S29",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 52,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S30",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 53,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S31",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 54,
+  "fields": {
+    "bus": 2,
+    "seat_number": "S32",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 55,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S1",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 56,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S2",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 57,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S3",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 58,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S4",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 59,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S5",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 60,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S6",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 61,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S7",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 62,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S8",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 63,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S9",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 64,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S10",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 65,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S11",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 66,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S12",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 67,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S13",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 68,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S14",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 69,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S15",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 70,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S16",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 71,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S17",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 72,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S18",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 73,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S19",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 74,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S20",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 75,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S21",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 76,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S22",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 77,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S23",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 78,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S24",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 79,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S25",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 80,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S26",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 81,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S27",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 82,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S28",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 83,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S29",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 84,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S30",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 85,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S31",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 86,
+  "fields": {
+    "bus": 3,
+    "seat_number": "S32",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 87,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S1",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 88,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S2",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 89,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S3",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 90,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S4",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 91,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S5",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 92,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S6",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 93,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S7",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 94,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S8",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 95,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S9",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 96,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S10",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 97,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S11",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 98,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S12",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 99,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S13",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 100,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S14",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 101,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S15",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 102,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S16",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 103,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S17",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 104,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S18",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 105,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S19",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 106,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S20",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 107,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S21",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 108,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S22",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 109,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S23",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 110,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S24",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 111,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S25",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 112,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S26",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 113,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S27",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 114,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S28",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 115,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S29",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 116,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S30",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 117,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S31",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 118,
+  "fields": {
+    "bus": 4,
+    "seat_number": "S32",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 119,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S1",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 120,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S2",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 121,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S3",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 122,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S4",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 123,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S5",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 124,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S6",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 125,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S7",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 126,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S8",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 127,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S9",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 128,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S10",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 129,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S11",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 130,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S12",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 131,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S13",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 132,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S14",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 133,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S15",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 134,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S16",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 135,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S17",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 136,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S18",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 137,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S19",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 138,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S20",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 139,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S21",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 140,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S22",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 141,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S23",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 142,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S24",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 143,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S25",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 144,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S26",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 145,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S27",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 146,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S28",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 147,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S29",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 148,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S30",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 149,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S31",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 150,
+  "fields": {
+    "bus": 5,
+    "seat_number": "S32",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 151,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S1",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 152,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S2",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 153,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S3",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 154,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S4",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 155,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S5",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 156,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S6",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 157,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S7",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 158,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S8",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 159,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S9",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 160,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S10",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 161,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S11",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 162,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S12",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 163,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S13",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 164,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S14",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 165,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S15",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 166,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S16",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 167,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S17",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 168,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S18",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 169,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S19",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 170,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S20",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 171,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S21",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 172,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S22",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 173,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S23",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 174,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S24",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 175,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S25",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 176,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S26",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 177,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S27",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 178,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S28",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 179,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S29",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 180,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S30",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 181,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S31",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.seat",
+  "pk": 182,
+  "fields": {
+    "bus": 6,
+    "seat_number": "S32",
+    "is_booked": false,
+    "is_held": false,
+    "hold_expires_at": null
+  }
+},
+{
+  "model": "bookings.booking",
+  "pk": 23,
+  "fields": {
+    "user": 1,
+    "bus": 3,
+    "seat": 56,
+    "journey_date": "2026-02-22",
+    "status": "EXPIRED",
+    "booking_time": "2026-02-19T05:49:49.600Z"
+  }
+},
+{
+  "model": "bookings.booking",
+  "pk": 24,
+  "fields": {
+    "user": 1,
+    "bus": 3,
+    "seat": 1,
+    "journey_date": "2026-02-21",
+    "status": "EXPIRED",
+    "booking_time": "2026-02-20T05:32:55.087Z"
+  }
+},
+{
+  "model": "bookings.booking",
+  "pk": 25,
+  "fields": {
+    "user": 1,
+    "bus": 1,
+    "seat": 3,
+    "journey_date": "2026-02-21",
+    "status": "EXPIRED",
+    "booking_time": "2026-02-20T05:44:52.072Z"
+  }
+},
+{
+  "model": "bookings.booking",
+  "pk": 26,
+  "fields": {
+    "user": 1,
+    "bus": 1,
+    "seat": 1,
+    "journey_date": "2026-03-07",
+    "status": "EXPIRED",
+    "booking_time": "2026-03-06T08:16:13.793Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 29,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SHX45SH4bJgohm",
+    "razorpay_payment_id": "pay_SHX4HJB0tF3dhr",
+    "razorpay_signature": "44699244128560b7fb657c02e44c95a5fce42cbf4a034234b226b222b6ffcae8",
+    "amount": 9999,
+    "status": "REFUNDED",
+    "created_at": "2026-02-18T07:50:52.069Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 30,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SHX55FWzp43HGh",
+    "razorpay_payment_id": null,
+    "razorpay_signature": null,
+    "amount": 9999,
+    "status": "CREATED",
+    "created_at": "2026-02-18T07:51:48.634Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 31,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SHX5ngCa2akzJ9",
+    "razorpay_payment_id": null,
+    "razorpay_signature": null,
+    "amount": 9999,
+    "status": "CREATED",
+    "created_at": "2026-02-18T07:52:29.351Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 32,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SHXEurbm0u6wbf",
+    "razorpay_payment_id": "pay_SHXF6pcGJmsas2",
+    "razorpay_signature": "5cafba17945c21b0e721e929ac2a976cbd280acba517db06cff46f606172a6ba",
+    "amount": 9999,
+    "status": "REFUNDED",
+    "created_at": "2026-02-18T08:01:07.151Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 33,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SHXMlcVh21l9G2",
+    "razorpay_payment_id": null,
+    "razorpay_signature": null,
+    "amount": 9999,
+    "status": "CREATED",
+    "created_at": "2026-02-18T08:08:33.068Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 34,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SHXnMXZy4gdHnJ",
+    "razorpay_payment_id": "pay_SHXnZULXwtdHMR",
+    "razorpay_signature": "377d719ef12bfd0f431f43be797f57ac25658ed354e521e866206cede562e15b",
+    "amount": 9999,
+    "status": "REFUNDED",
+    "created_at": "2026-02-18T08:33:43.695Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 35,
+  "fields": {
+    "user": 1,
+    "booking": 23,
+    "razorpay_order_id": "order_SHtWqYpwkl9MZR",
+    "razorpay_payment_id": "pay_SHtX6d47P1ZTNA",
+    "razorpay_signature": "7f395a117bd7bb0b982eede57c82eb2d8f76b6225174e560c41b41f556c96478",
+    "amount": 299900,
+    "status": "SUCCESS",
+    "created_at": "2026-02-19T05:49:20.113Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 36,
+  "fields": {
+    "user": 1,
+    "booking": 24,
+    "razorpay_order_id": "order_SIHm4GOTtoDcd9",
+    "razorpay_payment_id": "pay_SIHmMDM5KyHbqk",
+    "razorpay_signature": "e90ecf998bb8a3af2ee8b707a8ccc7a7d27c89523a8d1d12a8c7fc65f6d4367d",
+    "amount": 9999,
+    "status": "SUCCESS",
+    "created_at": "2026-02-20T05:32:23.049Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 37,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SIHnTBN8D3Va8h",
+    "razorpay_payment_id": null,
+    "razorpay_signature": null,
+    "amount": 9999,
+    "status": "CREATED",
+    "created_at": "2026-02-20T05:33:42.637Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 38,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SIHwSJBzHBBUvF",
+    "razorpay_payment_id": null,
+    "razorpay_signature": null,
+    "amount": 9999,
+    "status": "CREATED",
+    "created_at": "2026-02-20T05:42:13.077Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 39,
+  "fields": {
+    "user": 1,
+    "booking": 25,
+    "razorpay_order_id": "order_SIHyp4CUb0FDag",
+    "razorpay_payment_id": "pay_SIHyzjTdTjOUOc",
+    "razorpay_signature": "348bdc824e807871ff4c07b6be821f5de4ebe54ab57e2887b1519038319847cf",
+    "amount": 9999,
+    "status": "SUCCESS",
+    "created_at": "2026-02-20T05:44:27.496Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 40,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SNrPcg7YMN7Ukn",
+    "razorpay_payment_id": null,
+    "razorpay_signature": null,
+    "amount": 5000,
+    "status": "EDIT_PENDING",
+    "created_at": "2026-03-06T07:39:08.012Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 41,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SNrSARMDxzPHtA",
+    "razorpay_payment_id": "pay_SNrSInzHEKwgwx",
+    "razorpay_signature": null,
+    "amount": 5000,
+    "status": "SUCCESS",
+    "created_at": "2026-03-06T07:41:32.530Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 42,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SNrWD3c7uutxKn",
+    "razorpay_payment_id": "pay_SNrWMD8IXy0BSg",
+    "razorpay_signature": null,
+    "amount": 289901,
+    "status": "SUCCESS",
+    "created_at": "2026-03-06T07:45:22.129Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 43,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SNrbjeVw0FWyiW",
+    "razorpay_payment_id": "pay_SNrbquPYFOnfSh",
+    "razorpay_signature": null,
+    "amount": 10000,
+    "status": "SUCCESS",
+    "created_at": "2026-03-06T07:50:36.001Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 44,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SNrccvgNdyqEvz",
+    "razorpay_payment_id": "pay_SNrcoFrw6Rt5vX",
+    "razorpay_signature": null,
+    "amount": 170000,
+    "status": "SUCCESS",
+    "created_at": "2026-03-06T07:51:26.647Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 45,
+  "fields": {
+    "user": 1,
+    "booking": 26,
+    "razorpay_order_id": "order_SNs2Q1YiJCVu98",
+    "razorpay_payment_id": "pay_SNs2Xb7WjCrWNk",
+    "razorpay_signature": "dc84fad11798fa943ac5c1cab6a748130b2983ab038c089c37678a59876250c8",
+    "amount": 9999,
+    "status": "SUCCESS",
+    "created_at": "2026-03-06T08:15:51.681Z"
+  }
+},
+{
+  "model": "bookings.payment",
+  "pk": 46,
+  "fields": {
+    "user": 1,
+    "booking": null,
+    "razorpay_order_id": "order_SPRF8GWBbuxjkw",
+    "razorpay_payment_id": "pay_SPRFFY4tYTtVM8",
+    "razorpay_signature": "ad0a57c5f4ce5c5187e92705b76a0fa4522324b2c9b5a04a41ae9bcc19c607c8",
+    "amount": 9999,
+    "status": "REFUNDED",
+    "created_at": "2026-03-10T07:21:10.058Z"
+  }
+},
+{
+  "model": "bookings.profile",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "avatar": "media/avatars/akhils_qud77c"
+  }
+},
+{
+  "model": "bookings.profile",
+  "pk": 2,
+  "fields": {
+    "user": 3,
+    "avatar": ""
+  }
+},
+{
+  "model": "bookings.ticket",
+  "pk": 15,
+  "fields": {
+    "booking": 23,
+    "user": 1,
+    "status": "USED",
+    "created_at": "2026-02-19T05:49:49.642Z"
+  }
+},
+{
+  "model": "bookings.ticket",
+  "pk": 16,
+  "fields": {
+    "booking": 24,
+    "user": 1,
+    "status": "ACTIVE",
+    "created_at": "2026-02-20T05:32:55.151Z"
+  }
+},
+{
+  "model": "bookings.ticket",
+  "pk": 17,
+  "fields": {
+    "booking": 25,
+    "user": 1,
+    "status": "USED",
+    "created_at": "2026-02-20T05:44:52.120Z"
+  }
+},
+{
+  "model": "bookings.ticket",
+  "pk": 18,
+  "fields": {
+    "booking": 26,
+    "user": 1,
+    "status": "ACTIVE",
+    "created_at": "2026-03-06T08:16:13.815Z"
+  }
+}
+]

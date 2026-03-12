@@ -163,7 +163,6 @@ class TicketVerifyView(APIView):
 
         if journey_date == today and start_time < now:
             return Response({"valid": False, "message": "Ticket expired (bus already departed)"}, status=400)
-
        
 
         return Response({
