@@ -150,9 +150,25 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class AdminBusSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Bus
         fields = "__all__"
+
+    def get_image(self, obj):
+        image = getattr(obj, "image", None)
+
+        if not image:
+            return None
+
+        try:
+            image_url = image.url
+        except Exception:
+            return None
+
+        request = self.context.get("request")
+        return request.build_absolute_uri(image_url) if request else image_url
 
 
 class AdminRecentBookingSerializer(serializers.ModelSerializer):
