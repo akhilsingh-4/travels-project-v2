@@ -5,6 +5,7 @@ WORKDIR /app/travels
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
+ENV PIP_ROOT_USER_ACTION=ignore
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
