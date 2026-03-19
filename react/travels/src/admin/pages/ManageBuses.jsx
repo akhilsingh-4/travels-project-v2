@@ -6,6 +6,7 @@ import {
   deleteAdminBus,
 } from "../../api/adminBuses";
 import { toast } from "react-toastify";
+import { resolveMediaUrl } from "../../utils/url";
 
 export default function ManageBuses() {
   const [buses, setBuses] = useState([]);
@@ -183,7 +184,7 @@ export default function ManageBuses() {
                   <td className="px-4 py-3">
                     {b.image ? (
                       <img
-                        src={`http://localhost:8000${b.image}`}
+                        src={resolveMediaUrl(b.image)}
                         alt={b.bus_name}
                         className="h-10 w-16 rounded object-cover"
                       />

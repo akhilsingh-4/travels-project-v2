@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../api/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { resolveMediaUrl } from "../utils/url";
 
 const SkeletonCard = () => (
   <div className="animate-pulse flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5">
@@ -330,9 +331,7 @@ const BusList = () => {
                     <img
                       src={
                         bus.image
-                          ? bus.image.startsWith("http")
-                            ? bus.image
-                            : `http://localhost:8000${bus.image}`
+                          ? resolveMediaUrl(bus.image)
                           : "/no-image.jpg"
                       }
                       alt={bus.bus_name}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import api from "../../api/api";
+import { toRelativeApiPath } from "../../utils/url";
 
 const STATUS_UI = {
   VALID: {
@@ -85,7 +86,7 @@ const AdminScanTicket = () => {
     scanner.render(
       async (decodedText) => {
         try {
-          const apiPath = decodedText.replace("http://localhost:8000", "");
+          const apiPath = toRelativeApiPath(decodedText);
           const res = await api.get(apiPath);
 
           setResult(res.data);

@@ -1,6 +1,10 @@
+import logging
 from rest_framework import serializers
 from .models import Bus, Seat, Booking, Payment, Profile
 from django.contrib.auth.models import User
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -35,29 +39,32 @@ class UserProfileSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get("email", instance.email)
         instance.save()
 
-        profile, _ = Profile.objects.get_or_create(user=instance)
-
         if avatar is not serializers.empty:
-            profile.avatar = avatar
-            profile.save()
+            try:
+                profile, _ = Profile.objects.get_or_create(user=instance)
+                profile.avatar = avatar
+                profile.save()
+            except Exception:
+                logger.exception("Failed to save avatar for user_id=%s", instance.id)
 
         return instance
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
 
-        profile = Profile.objects.filter(user=instance).first()
-
-        avatar = getattr(profile, "avatar", None)
         request = self.context.get("request")
+        avatar = None
 
-        if avatar:
-            try:
+        try:
+            profile = Profile.objects.filter(user=instance).first()
+            avatar = getattr(profile, "avatar", None)
+            if avatar:
                 avatar_url = avatar.url
                 data["avatar"] = request.build_absolute_uri(avatar_url) if request else avatar_url
-            except Exception:
+            else:
                 data["avatar"] = None
-        else:
+        except Exception:
+            logger.exception("Failed to serialize avatar for user_id=%s", instance.id)
             data["avatar"] = None
 
         return data
