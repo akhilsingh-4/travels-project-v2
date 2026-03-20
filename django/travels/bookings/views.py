@@ -1,4 +1,5 @@
 import logging
+import secrets
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -17,6 +18,7 @@ from .payments import client
 from django.conf import settings
 from .utils import Util
 from .models import Bus, Seat, Booking, Payment, Ticket
+from .redis_service import LocalRedisOTPService
 from .serializers import (
     UserRegisterSerializer,
     BusSerializers,
@@ -24,7 +26,9 @@ from .serializers import (
     UserProfileSerializer,
     PaymentSerializer,
     AdminBusSerializer,
-    AdminRecentBookingSerializer
+    AdminRecentBookingSerializer,
+    RequestOTPSerializer,
+    VerifyOTPSerializer,
 )
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -333,6 +337,129 @@ class LoginView(APIView):
                 "is_admin": user.is_staff,
             },
             status=status.HTTP_200_OK
+        )
+
+
+class RequestOTPView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        serializer = RequestOTPSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if not settings.ENABLE_LOCAL_REDIS:
+            return Response(
+                {"error": "OTP is not available in this environment"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        if not LocalRedisOTPService.is_available():
+            return Response(
+                {"error": "Redis is not available"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        email = serializer.validated_data["email"].strip().lower()
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response(
+                {"message": "If this email exists, an OTP has been sent"},
+                status=status.HTTP_200_OK,
+            )
+
+        otp = f"{secrets.randbelow(1000000):06d}"
+        ttl_seconds = settings.OTP_TTL_SECONDS
+
+        otp_stored = LocalRedisOTPService.set_otp(
+            email=email,
+            otp=otp,
+            ttl_seconds=ttl_seconds,
+        )
+        if not otp_stored:
+            logger.error("Failed to persist OTP in Redis for email=%s", email)
+            return Response(
+                {"error": "Redis is not available"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        try:
+            Util.send_templated_email(
+                subject="Your Travels App OTP",
+                template_name="emails/otp_email.html",
+                context={
+                    "username": user.username,
+                    "otp": otp,
+                    "expiry_minutes": ttl_seconds // 60,
+                },
+                to_email=user.email,
+            )
+        except Exception:
+            LocalRedisOTPService.delete_otp(email)
+            logger.exception("Failed to send OTP email to user_id=%s", user.id)
+            return Response(
+                {"error": "Unable to send OTP email"},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        return Response(
+            {"message": "If this email exists, an OTP has been sent"},
+            status=status.HTTP_200_OK,
+        )
+
+
+class VerifyOTPView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        serializer = VerifyOTPSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if not settings.ENABLE_LOCAL_REDIS:
+            return Response(
+                {"error": "OTP is not available in this environment"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        if not LocalRedisOTPService.is_available():
+            return Response(
+                {"error": "Redis is not available"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        email = serializer.validated_data["email"].strip().lower()
+        otp = serializer.validated_data["otp"]
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Invalid OTP request"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        stored_otp = LocalRedisOTPService.get_otp(email)
+        if stored_otp is None:
+            return Response(
+                {"error": "OTP expired or not found"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if stored_otp != otp:
+            return Response(
+                {"error": "Invalid OTP"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        profile = user.profile
+        profile.is_email_verified = True
+        profile.save(update_fields=["is_email_verified"])
+        LocalRedisOTPService.delete_otp(email)
+
+        return Response(
+            {"message": "OTP verified successfully"},
+            status=status.HTTP_200_OK,
         )
 
 

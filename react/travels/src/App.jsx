@@ -11,6 +11,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import MyPayments from "./pages/MyPayments";
 import PaymentStatus from "./pages/PaymentStatus";
 import ResetPassword from "./pages/ResetPassword";
+import EmailVerification from "./pages/EmailVerification";
 
 import AdminLayout from "./admin/AdminLayout";
 import ManageBuses from "./admin/pages/ManageBuses";
@@ -42,6 +43,7 @@ const App = () => {
     <Routes>
       <Route path="/login" element={<LoginForm onLogin={handleLogin} />} />
       <Route path="/register" element={<RegisterForm />} />
+      {/* <Route path="/verify-email" element={<EmailVerification />} /> */}
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
 

@@ -14,6 +14,8 @@ api.interceptors.request.use(
     const authExcludedPaths = [
       "/api/login/",
       "/api/register/",
+      "/api/request-otp/",
+      "/api/verify-otp/",
       "/api/token/refresh/",
       "/api/forgot-password/",
       "/api/reset-password/",

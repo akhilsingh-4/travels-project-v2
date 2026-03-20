@@ -25,29 +25,44 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(required=False, allow_null=True, write_only=True)
+    is_email_verified = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "avatar"]
+        fields = ["id", "username", "email", "first_name", "last_name", "avatar", "is_email_verified"]
         read_only_fields = ["id", "username"]
 
     def update(self, instance, validated_data):
         avatar = validated_data.pop("avatar", serializers.empty)
+        new_email = validated_data.get("email", instance.email)
+        email_changed = new_email != instance.email
 
         instance.first_name = validated_data.get("first_name", instance.first_name)
         instance.last_name = validated_data.get("last_name", instance.last_name)
-        instance.email = validated_data.get("email", instance.email)
+        instance.email = new_email
         instance.save()
 
-        if avatar is not serializers.empty:
-            try:
-                profile, _ = Profile.objects.get_or_create(user=instance)
+        try:
+            profile, _ = Profile.objects.get_or_create(user=instance)
+
+            if email_changed:
+                profile.is_email_verified = False
+
+            if avatar is not serializers.empty:
                 profile.avatar = avatar
-                profile.save()
-            except Exception:
-                logger.exception("Failed to save avatar for user_id=%s", instance.id)
+            profile.save()
+        except Exception:
+            logger.exception("Failed to save profile for user_id=%s", instance.id)
 
         return instance
+
+    def get_is_email_verified(self, instance):
+        try:
+            profile = Profile.objects.filter(user=instance).first()
+            return bool(profile and profile.is_email_verified)
+        except Exception:
+            logger.exception("Failed to load email verification for user_id=%s", instance.id)
+            return False
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -154,6 +169,15 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = "__all__"
+
+
+class RequestOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class VerifyOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(min_length=6, max_length=6)
 
 
 class AdminBusSerializer(serializers.ModelSerializer):
