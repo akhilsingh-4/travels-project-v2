@@ -17,8 +17,9 @@ from django.utils.encoding import force_str
 from .payments import client
 from django.conf import settings
 from .utils import Util
-from .models import Bus, Seat, Booking, Payment, Ticket
+from .models import Bus, Seat, Booking, Payment, Ticket, Profile
 from .redis_service import LocalRedisOTPService
+from .rate_limit_service import allow_otp_request
 from .serializers import (
     UserRegisterSerializer,
     BusSerializers,
@@ -355,11 +356,16 @@ class RequestOTPView(APIView):
 
         if not LocalRedisOTPService.is_available():
             return Response(
-                {"error": "Redis is not available"},
+                {"error": "Redis is not available"},  
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         email = serializer.validated_data["email"].strip().lower()
+        if not allow_otp_request(email):
+            return Response(
+                {"error": "Too many OTP requests. Please try again later."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
 
         try:
             user = User.objects.get(email__iexact=email)
@@ -452,7 +458,7 @@ class VerifyOTPView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        profile = user.profile
+        profile, _ = Profile.objects.get_or_create(user=user)
         profile.is_email_verified = True
         profile.save(update_fields=["is_email_verified"])
         LocalRedisOTPService.delete_otp(email)
@@ -468,6 +474,7 @@ class UserProfileView(APIView):
 
     def get(self, request):
         try:
+            Profile.objects.get_or_create(user=request.user)
             serializer = UserProfileSerializer(
                 request.user,
                 context={"request": request}
@@ -508,7 +515,7 @@ class RequestPasswordResetView(APIView):
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = PasswordResetTokenGenerator().make_token(user)
-        reset_link = f"https://travels-project-v2.vercel.app/reset-password/{uid}/{token}/"
+        reset_link = f"https://trave ls-project-v2.vercel.app/reset-password/{uid}/{token}/"
         try:
             Util.send_templated_email(
                 subject="Reset Your Password - Travels App",
@@ -671,7 +678,7 @@ class VerifyPaymentView(APIView):
                 seat=seat,
                 journey_date=journey_date
             ).exists():
-                return Response({"error": "Seat already booked for this date"}, status=400)
+                return Response(  {"error": "Seat already booked for this date"}, status=400)
 
 
 
@@ -1057,7 +1064,7 @@ class EditBookingRequestView(APIView):
 class VerifyEditPaymentView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request): 
         order_id = request.data.get("razorpay_order_id")
         payment_id = request.data.get("razorpay_payment_id")
         signature = request.data.get("razorpay_signature")
@@ -1120,7 +1127,7 @@ class VerifyEditPaymentView(APIView):
 
             if new_date:
                 booking.journey_date = new_date
-
+ 
             booking.save()
 
             payment.status = "SUCCESS"

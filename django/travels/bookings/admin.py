@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Bus,Seat,Booking,Ticket,Payment
+from .models import Bus,Seat,Booking,Ticket,Payment, Profile
 # Register your models here.
 
 class PaymentAdmin(admin.ModelAdmin):
@@ -16,6 +16,10 @@ class SeatAdmin(admin.ModelAdmin):
 class BookingAdmin(admin.ModelAdmin):
     list_display = ('user', 'bus', 'seat', 'booking_time')
 
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'is_email_verified']
+
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Bus, BusAdmin)
 admin.site.register(Seat, SeatAdmin)
 admin.site.register(Booking, BookingAdmin)

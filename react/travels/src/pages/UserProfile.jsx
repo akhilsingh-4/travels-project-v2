@@ -314,7 +314,7 @@ const UserProfile = () => {
                       placeholder="Enter OTP"
                       maxLength={6}
                       className="w-full rounded bg-gray-800 p-3 tracking-[0.3em]"
-                    />
+                    />                  
 
                     <button
                       type="button"
