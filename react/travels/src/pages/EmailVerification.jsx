@@ -19,7 +19,7 @@ const EmailVerification = () => {
               </p>
 
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                {[
+                {[  
                   { step: "01", label: "Enter email" },
                   { step: "02", label: "Receive OTP" },
                   { step: "03", label: "Verify access" },
@@ -37,7 +37,7 @@ const EmailVerification = () => {
           </div>
 
           <OTPVerification />
-        </div>
+        </div> 
       </div>
     </div>
   );

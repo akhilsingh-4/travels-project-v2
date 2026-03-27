@@ -175,7 +175,7 @@ const UserProfile = () => {
       setTimer(0);
       dispatch(fetchProfile());
     } catch (error) {
-      if (isOtpUnavailableError(error)) {
+      if (isOtpUnavailableError(error)) { 
         setOtpUnavailable(true);
         setShowOtpSection(false);
         setOtpSent(false);

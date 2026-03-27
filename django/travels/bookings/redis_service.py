@@ -1,4 +1,5 @@
 import logging
+import json
 
 from django.conf import settings
 
@@ -13,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 class LocalRedisOTPService:
     _client = None
+
+    @classmethod
+    def _reset_client(cls):
+        cls._client = None
 
     @classmethod
     def enabled(cls):
@@ -99,4 +104,48 @@ class LocalRedisOTPService:
             return client.delete(cls._key(email))
         except Exception:
             logger.exception("Failed to delete OTP from Redis for email=%s", email)
+            return 0
+
+    @staticmethod
+    def _user_key(user_id):
+        return f"user:{user_id}"
+
+    @classmethod
+    def get_user_profile_cache(cls, user_id):
+        client = cls.get_client()
+        if client is None:
+            return None
+
+        try:
+            cached_data = client.get(cls._user_key(user_id))
+            return json.loads(cached_data) if cached_data else None
+        except Exception:
+            logger.warning("Redis unavailable while reading user cache for user_id=%s", user_id)
+            cls._reset_client()
+            return None
+
+    @classmethod
+    def set_user_profile_cache(cls, user_id, data, ttl_seconds):
+        client = cls.get_client()
+        if client is None:
+            return False
+
+        try:
+            return bool(client.setex(cls._user_key(user_id), ttl_seconds, json.dumps(data)))
+        except Exception:
+            logger.warning("Redis unavailable while storing user cache for user_id=%s", user_id)
+            cls._reset_client()
+            return False
+
+    @classmethod
+    def delete_user_profile_cache(cls, user_id):
+        client = cls.get_client()
+        if client is None:
+            return 0
+
+        try:
+            return client.delete(cls._user_key(user_id))
+        except Exception:
+            logger.warning("Redis unavailable while deleting user cache for user_id=%s", user_id)
+            cls._reset_client()
             return 0

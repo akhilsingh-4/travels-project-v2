@@ -436,7 +436,7 @@ class VerifyOTPView(APIView):
 
         email = serializer.validated_data["email"].strip().lower()
         otp = serializer.validated_data["otp"]
-
+                  
         try:
             user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
@@ -474,10 +474,19 @@ class UserProfileView(APIView):
 
     def get(self, request):
         try:
+            cached_data = LocalRedisOTPService.get_user_profile_cache(request.user.id)
+            if cached_data:
+                return Response(cached_data, status=status.HTTP_200_OK)
+
             Profile.objects.get_or_create(user=request.user)
             serializer = UserProfileSerializer(
                 request.user,
                 context={"request": request}
+            )
+            LocalRedisOTPService.set_user_profile_cache(
+                user_id=request.user.id,
+                data=serializer.data,
+                ttl_seconds=settings.USER_CACHE_TTL_SECONDS,
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception:
@@ -496,6 +505,7 @@ class UserProfileView(APIView):
         )
         if serializer.is_valid():
             serializer.save()
+            LocalRedisOTPService.delete_user_profile_cache(request.user.id)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -725,7 +735,7 @@ class VerifyPaymentView(APIView):
                         "ticket_id": ticket.id,
                         "bus_name": booking.bus.bus_name,
                         "origin": booking.bus.origin,
-                        "destination": booking.bus.destination,
+                        "destination": booking.bus.destination, 
                         "seat_number": booking.seat.seat_number,
                         "start_time": booking.bus.start_time,
                         "reach_time": booking.bus.reach_time,
