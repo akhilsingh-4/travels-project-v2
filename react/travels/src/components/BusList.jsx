@@ -5,12 +5,12 @@ import { toast } from "react-toastify";
 import { resolveMediaUrl } from "../utils/url";
 
 const SkeletonCard = () => (
-  <div className="animate-pulse flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5">
+  <div className="flex animate-pulse flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5">
     <div className="h-48 w-full bg-white/10" />
-    <div className="p-6 space-y-4">
-      <div className="h-4 w-2/3 bg-white/10 rounded" />
-      <div className="h-4 w-1/3 bg-white/10 rounded" />
-      <div className="h-10 w-full bg-white/10 rounded-xl mt-4" />
+    <div className="space-y-4 p-6">
+      <div className="h-4 w-2/3 rounded bg-white/10" />
+      <div className="h-4 w-1/3 rounded bg-white/10" />
+      <div className="mt-4 h-10 w-full rounded-xl bg-white/10" />
     </div>
   </div>
 );
@@ -37,7 +37,7 @@ const BusList = () => {
           destination: destination || undefined,
         },
       });
-      const active = res.data.filter((b) => b.is_active !== false);
+      const active = res.data.filter((bus) => bus.is_active !== false);
       setBuses(active);
       if (active.length === 0) {
         toast.info("No buses found for selected route");
@@ -66,9 +66,9 @@ const BusList = () => {
   }, [buses, sortBy]);
 
   const trendingRoutes = useMemo(() => {
-    const set = new Set();
-    buses.forEach((b) => set.add(`${b.origin} → ${b.destination}`));
-    return Array.from(set).slice(0, 3);
+    const routeSet = new Set();
+    buses.forEach((bus) => routeSet.add(`${bus.origin} -> ${bus.destination}`));
+    return Array.from(routeSet).slice(0, 3);
   }, [buses]);
 
   const handleViewSeats = (bus) => {
@@ -77,8 +77,7 @@ const BusList = () => {
       return;
     }
 
-    const prev = JSON.parse(localStorage.getItem("recent_buses") || "[]");
-
+    const previous = JSON.parse(localStorage.getItem("recent_buses") || "[]");
     const minimalBus = {
       id: bus.id,
       bus_name: bus.bus_name,
@@ -86,11 +85,7 @@ const BusList = () => {
       destination: bus.destination,
     };
 
-    const updated = [
-      minimalBus,
-      ...prev.filter((b) => b.id !== bus.id),
-    ].slice(0, 4);
-
+    const updated = [minimalBus, ...previous.filter((item) => item.id !== bus.id)].slice(0, 4);
     localStorage.setItem("recent_buses", JSON.stringify(updated));
     setRecentlyViewed(updated);
 
@@ -187,7 +182,7 @@ const BusList = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white">
-      <div className="mx-auto max-w-7xl px-4 py-12 space-y-20">
+      <div className="mx-auto max-w-7xl space-y-20 px-4 py-12">
         {editBookingId && (
           <section className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-amber-200">
             <p className="font-semibold">Edit Mode Active</p>
@@ -197,13 +192,13 @@ const BusList = () => {
           </section>
         )}
 
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <section className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
           <div className="space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
-              🚍 Smart Bus Booking Platform
+              Smart Bus Booking Platform
             </span>
 
-            <h1 className="text-4xl md:text-5xl xl:text-6xl font-extrabold leading-tight">
+            <h1 className="text-4xl font-extrabold leading-tight md:text-5xl xl:text-6xl">
               Book Bus Tickets{" "}
               <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
                 in Seconds
@@ -211,13 +206,16 @@ const BusList = () => {
             </h1>
 
             <p className="max-w-xl text-gray-400">
-              Search routes, choose seats in real-time, pay securely and download tickets instantly.
+              Search routes, preview the path, choose seats in real time, and
+              book your journey in one flow.
             </p>
 
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() =>
-                  document.getElementById("search-section")?.scrollIntoView({ behavior: "smooth" })
+                  document
+                    .getElementById("search-section")
+                    ?.scrollIntoView({ behavior: "smooth" })
                 }
                 className="rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-6 py-3 font-semibold text-black"
               >
@@ -226,13 +224,13 @@ const BusList = () => {
 
               <button
                 onClick={() => navigate("/my-bookings")}
-                className="rounded-xl border border-white/20 px-6 py-3 text-gray-200 hover:bg-white/5 transition"
+                className="rounded-xl border border-white/20 px-6 py-3 text-gray-200 transition hover:bg-white/5"
               >
                 My Bookings
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl">
+            <div className="grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
                 <p className="text-lg font-semibold text-cyan-300">{buses.length}+</p>
                 <p className="text-xs text-gray-400">Available Buses</p>
@@ -248,18 +246,20 @@ const BusList = () => {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <p className="text-sm text-gray-400 mb-3"> Trending Routes</p>
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            <p className="mb-3 text-sm text-gray-400">Trending Routes</p>
             <div className="space-y-2">
               {trendingRoutes.map((route, idx) => (
                 <div
                   key={`${route}-${idx}`}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm hover:bg-white/10 cursor-pointer"
+                  className="cursor-pointer rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm hover:bg-white/10"
                   onClick={() => {
-                    const [o, d] = route.split(" → ");
-                    setOrigin(o);
-                    setDestination(d);
-                    document.getElementById("search-section")?.scrollIntoView({ behavior: "smooth" });
+                    const [nextOrigin, nextDestination] = route.split(" -> ");
+                    setOrigin(nextOrigin);
+                    setDestination(nextDestination);
+                    document
+                      .getElementById("search-section")
+                      ?.scrollIntoView({ behavior: "smooth" });
                   }}
                 >
                   {route}
@@ -272,16 +272,16 @@ const BusList = () => {
         {recentlyViewed.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-xl font-semibold text-cyan-300">Recently Viewed</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {recentlyViewed.map((bus) => (
                 <div
                   key={`recent-${bus.id}`}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 cursor-pointer transition"
+                  className="cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10"
                   onClick={() => handleViewSeats(bus)}
                 >
                   <p className="font-medium">{bus.bus_name}</p>
                   <p className="text-xs text-gray-400">
-                    {bus.origin} → {bus.destination}
+                    {bus.origin} {"->"} {bus.destination}
                   </p>
                 </div>
               ))}
@@ -290,8 +290,8 @@ const BusList = () => {
         )}
 
         <section id="search-section" className="space-y-10">
-          <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <input
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white"
                 placeholder="From (Origin)"
@@ -316,8 +316,8 @@ const BusList = () => {
 
           {loading ? (
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <SkeletonCard key={`sk-${i}`} />
+              {[1, 2, 3].map((index) => (
+                <SkeletonCard key={`sk-${index}`} />
               ))}
             </div>
           ) : (
@@ -329,20 +329,16 @@ const BusList = () => {
                 >
                   <div className="h-48 w-full overflow-hidden">
                     <img
-                      src={
-                        bus.image
-                          ? resolveMediaUrl(bus.image)
-                          : "/no-image.jpg"
-                      }
+                      src={bus.image ? resolveMediaUrl(bus.image) : "/no-image.jpg"}
                       alt={bus.bus_name}
                       className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
                     />
                   </div>
 
-                  <div className="flex flex-1 flex-col p-6 space-y-4">
+                  <div className="flex flex-1 flex-col space-y-4 p-6">
                     <h3 className="text-lg font-semibold">{bus.bus_name}</h3>
                     <p className="text-xs text-gray-400">
-                      {bus.origin} → {bus.destination}
+                      {bus.origin} {"->"} {bus.destination}
                     </p>
 
                     <button
@@ -350,7 +346,7 @@ const BusList = () => {
                         editBookingId ? startBusEditFlow(bus) : handleViewSeats(bus)
                       }
                       disabled={!!editBookingId && editingBusId === bus.id}
-                      className="mt-auto w-full rounded-xl bg-gradient-to-r from-cyan-400 to-purple-600 py-3 font-semibold text-black disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="mt-auto w-full rounded-xl bg-gradient-to-r from-cyan-400 to-purple-600 py-3 font-semibold text-black disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {editBookingId
                         ? editingBusId === bus.id

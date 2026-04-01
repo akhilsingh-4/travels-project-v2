@@ -1,5 +1,8 @@
 import logging
 import secrets
+from urllib.parse import quote
+
+import requests
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -52,6 +55,219 @@ from django.db.models import Sum
 from datetime import date as date
 
 logger = logging.getLogger(__name__)
+
+
+def _tomtom_key_configured():
+    return bool(getattr(settings, "TOMTOM_API_KEY", ""))
+
+
+def _build_location_queries(place_name):
+    normalized = place_name.strip()
+    queries = []
+
+    if "," not in normalized:
+        queries.append(f"{normalized}, India")
+    queries.append(normalized)
+
+    seen = set()
+    unique_queries = []
+    for query in queries:
+        key = query.lower()
+        if key not in seen:
+            seen.add(key)
+            unique_queries.append(query)
+
+    return unique_queries
+
+
+def _geocode_location(place_name):
+    for query in _build_location_queries(place_name):
+        response = requests.get(
+            f"https://api.tomtom.com/search/2/geocode/{quote(query)}.json",
+            params={
+                "key": settings.TOMTOM_API_KEY,
+                "limit": 1,
+                "countrySet": "IN",
+                "view": "IN",
+                "language": "en-GB",
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+
+        results = response.json().get("results", [])
+        if not results:
+            continue
+
+        top_match = results[0]
+        position = top_match.get("position") or {}
+        if "lat" not in position or "lon" not in position:
+            continue
+
+        return {
+            "label": top_match.get("address", {}).get("freeformAddress") or query,
+            "position": {
+                "lat": position["lat"],
+                "lon": position["lon"],
+            },
+        }
+
+    raise ValueError(f"No geocoding result found for '{place_name}'")
+
+
+def _fetch_route_points(origin, destination):
+    route_response = requests.get(
+        "https://api.tomtom.com/routing/1/calculateRoute/"
+        f"{origin['position']['lat']},{origin['position']['lon']}:"
+        f"{destination['position']['lat']},{destination['position']['lon']}/json",
+        params={
+            "key": settings.TOMTOM_API_KEY,
+            "traffic": "true",
+            "routeType": "fastest",
+            "travelMode": "car",
+        },
+        timeout=10,
+    )
+    route_response.raise_for_status()
+
+    routes = route_response.json().get("routes", [])
+    if not routes:
+        raise ValueError("TomTom did not return a route")
+
+    route = routes[0]
+    leg = (route.get("legs") or [{}])[0]
+    points = leg.get("points") or []
+    if len(points) < 2:
+        raise ValueError("TomTom returned an incomplete route geometry")
+
+    summary = route.get("summary") or {}
+    return {
+        "origin": origin,
+        "destination": destination,
+        "distance_meters": summary.get("lengthInMeters"),
+        "points": [
+            {
+                "lat": point["latitude"],
+                "lon": point["longitude"],
+            }
+            for point in points
+            if "latitude" in point and "longitude" in point
+        ],
+    }
+
+
+def _route_bbox(points, padding_ratio=0.12):
+    lats = [point["lat"] for point in points]
+    lons = [point["lon"] for point in points]
+
+    min_lat = min(lats)
+    max_lat = max(lats)
+    min_lon = min(lons)
+    max_lon = max(lons)
+
+    lat_padding = max((max_lat - min_lat) * padding_ratio, 0.05)
+    lon_padding = max((max_lon - min_lon) * padding_ratio, 0.05)
+
+    return {
+        "min_lat": max(min_lat - lat_padding, -85),
+        "max_lat": min(max_lat + lat_padding, 85),
+        "min_lon": max(min_lon - lon_padding, -180),
+        "max_lon": min(max_lon + lon_padding, 180),
+    }
+
+
+def _route_center_and_zoom(route_bbox):
+    center_lon = (route_bbox["min_lon"] + route_bbox["max_lon"]) / 2
+    center_lat = (route_bbox["min_lat"] + route_bbox["max_lat"]) / 2
+    lon_span = max(route_bbox["max_lon"] - route_bbox["min_lon"], 0.01)
+
+    if lon_span > 12:
+        zoom = 5
+    elif lon_span > 6:
+        zoom = 6
+    elif lon_span > 3:
+        zoom = 7
+    elif lon_span > 1.5:
+        zoom = 8
+    elif lon_span > 0.75:
+        zoom = 9
+    elif lon_span > 0.35:
+        zoom = 10
+    else:
+        zoom = 11
+
+    return {
+        "center": f"{center_lon},{center_lat}",
+        "zoom": zoom,
+    }
+
+
+def _request_static_map(params, timeout=15):
+    response = requests.get(
+        "https://api.tomtom.com/map/1/staticimage",
+        params=params,
+        timeout=timeout,
+        headers={"User-Agent": "TravelsApp/1.0"},
+    )
+    response.raise_for_status()
+    return response.content, response.headers.get("Content-Type", "image/jpeg")
+
+
+def _fetch_route_map_image(route_bbox, width=900, height=360):
+    center_config = _route_center_and_zoom(route_bbox)
+
+    base_params = {
+        "key": settings.TOMTOM_API_KEY,
+        "width": width,
+        "height": height,
+        "layer": "basic",
+        "style": "main",
+        "view": "Unified",
+        "language": "en-GB",
+        "format": "jpg",
+    }
+
+    bbox_params = {
+        **base_params,
+        "zoom": center_config["zoom"],
+        "bbox": ",".join(
+            [
+                str(route_bbox["min_lon"]),
+                str(route_bbox["min_lat"]),
+                str(route_bbox["max_lon"]),
+                str(route_bbox["max_lat"]),
+            ]
+        ),
+    }
+
+    try:
+        return _request_static_map(bbox_params)
+    except requests.RequestException as exc:
+        response = getattr(exc, "response", None)
+        if response is not None:
+            logger.warning(
+                "Static map bbox request failed: status=%s body=%s",
+                response.status_code,
+                response.text[:500],
+            )
+
+        center_params = {
+            **base_params,
+            "center": center_config["center"],
+            "zoom": center_config["zoom"],
+        }
+
+        try:
+            return _request_static_map(center_params)
+        except requests.RequestException as center_exc:
+            center_response = getattr(center_exc, "response", None)
+            if center_response is not None:
+                logger.warning(
+                    "Static map center request failed: status=%s body=%s",
+                    center_response.status_code,
+                    center_response.text[:500],
+                )
+            raise
 
 
 def generate_ticket_pdf_bytes(ticket):
@@ -461,7 +677,7 @@ class VerifyOTPView(APIView):
         profile, _ = Profile.objects.get_or_create(user=user)
         profile.is_email_verified = True
         profile.save(update_fields=["is_email_verified"])
-        LocalRedisOTPService.delete_otp(email)
+        LocalRedisOTPService.delete_otp(email)  
 
         return Response(
             {"message": "OTP verified successfully"},
@@ -805,6 +1021,43 @@ class BusDetailView(generics.RetrieveAPIView):
     def get_serializer_context(self):
         return {"request": self.request}
 
+
+class BusRouteMapView(APIView):
+    permission_classes = []
+
+    def get(self, request, pk):
+        try:
+            bus = Bus.objects.get(pk=pk, is_active=True)
+        except Bus.DoesNotExist:
+            return Response({"error": "Bus not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not _tomtom_key_configured():
+            return Response(
+                {"error": "Map API key is not configured"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        try:
+            origin = _geocode_location(bus.origin)
+            destination = _geocode_location(bus.destination)
+            route_data = _fetch_route_points(origin, destination)
+            route_bbox = _route_bbox(route_data["points"])
+            image_bytes, content_type = _fetch_route_map_image(route_bbox)
+        except ValueError as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        except requests.RequestException as exc:
+            logger.exception("Route map lookup failed for bus_id=%s", bus.id)
+            upstream_response = getattr(exc, "response", None)
+            error_message = "Unable to load map right now"
+            if upstream_response is not None and upstream_response.text:
+                error_message = upstream_response.text[:500]
+            return Response(
+                {"error": error_message},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        return HttpResponse(image_bytes, content_type=content_type)
+ 
 
 
 

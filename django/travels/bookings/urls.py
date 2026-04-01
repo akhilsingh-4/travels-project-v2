@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import EditBookingRequestView, VerifyEditPaymentView, MarkTicketUsedView, AdminActiveBusesView, AdminRecentBookingsView, AdminTotalBookingsView, AdminTotalRevenueView, RegisterApiView, AdminBusListCreateView, AdminBusDetailView, RefundTicketView, TicketVerifyView, BookingTicketView, LoginView, PaymentStatusView, MyPaymentsView, BusDetailView, BusListCreateApiView, VerifyPaymentView, CreatePaymentOrderView, RequestPasswordResetView, ConfirmPasswordResetView, UserProfileView, MyBookingsView, CancelBookingView, RequestOTPView, VerifyOTPView
+from .views import EditBookingRequestView, VerifyEditPaymentView, MarkTicketUsedView, AdminActiveBusesView, AdminRecentBookingsView, AdminTotalBookingsView, AdminTotalRevenueView, RegisterApiView, AdminBusListCreateView, AdminBusDetailView, RefundTicketView, TicketVerifyView, BookingTicketView, LoginView, PaymentStatusView, MyPaymentsView, BusDetailView, BusListCreateApiView, BusRouteMapView, VerifyPaymentView, CreatePaymentOrderView, RequestPasswordResetView, ConfirmPasswordResetView, UserProfileView, MyBookingsView, CancelBookingView, RequestOTPView, VerifyOTPView
 
 urlpatterns = [
     path('buses/', BusListCreateApiView.as_view(), name='buslist'),
     path('buses/<int:pk>/', BusDetailView.as_view(), name='bus-details'),
+    path('buses/<int:pk>/route-map/', BusRouteMapView.as_view(), name='bus-route-map'),
     path('register/', RegisterApiView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('request-otp/', RequestOTPView.as_view(), name='request-otp'),

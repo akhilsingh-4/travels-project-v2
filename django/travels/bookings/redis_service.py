@@ -115,7 +115,7 @@ class LocalRedisOTPService:
         client = cls.get_client()
         if client is None:
             return None
-
+     
         try:
             cached_data = client.get(cls._user_key(user_id))
             return json.loads(cached_data) if cached_data else None
@@ -136,7 +136,7 @@ class LocalRedisOTPService:
             logger.warning("Redis unavailable while storing user cache for user_id=%s", user_id)
             cls._reset_client()
             return False
-
+        
     @classmethod
     def delete_user_profile_cache(cls, user_id):
         client = cls.get_client()
