@@ -21,12 +21,12 @@ class LocalRedisOTPService:
 
     @classmethod
     def enabled(cls):
-        return bool(getattr(settings, "ENABLE_LOCAL_REDIS", False))
+        return True
 
     @classmethod
     def get_client(cls):
         if not cls.enabled():
-            logger.info("Local Redis OTP flow is disabled by settings")
+            logger.info("Redis OTP flow is disabled by settings")
             return None
 
         if redis is None:
@@ -63,7 +63,7 @@ class LocalRedisOTPService:
             client.ping()
             return True
         except Exception:
-            logger.exception("Redis is unavailable for local OTP flow")
+            logger.exception("Redis is unavailable for OTP flow")
             return False
 
     @staticmethod

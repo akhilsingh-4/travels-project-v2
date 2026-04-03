@@ -1,6 +1,5 @@
 import logging
 import secrets
-from urllib.parse import quote
 
 import requests
 from django.contrib.auth import authenticate
@@ -47,6 +46,13 @@ from datetime import timedelta
 from io import BytesIO
 
 from .permissions import IsAdmin
+from .tomtom_service import (
+    fetch_route_map_image,
+    fetch_route_points,
+    geocode_location,
+    route_bbox,
+    tomtom_key_configured,
+)
 
 
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -55,219 +61,6 @@ from django.db.models import Sum
 from datetime import date as date
 
 logger = logging.getLogger(__name__)
-
-
-def _tomtom_key_configured():
-    return bool(getattr(settings, "TOMTOM_API_KEY", ""))
-
-
-def _build_location_queries(place_name):
-    normalized = place_name.strip()
-    queries = []
-
-    if "," not in normalized:
-        queries.append(f"{normalized}, India")
-    queries.append(normalized)
-
-    seen = set()
-    unique_queries = []
-    for query in queries:
-        key = query.lower()
-        if key not in seen:
-            seen.add(key)
-            unique_queries.append(query)
-
-    return unique_queries
-
-
-def _geocode_location(place_name):
-    for query in _build_location_queries(place_name):
-        response = requests.get(
-            f"https://api.tomtom.com/search/2/geocode/{quote(query)}.json",
-            params={
-                "key": settings.TOMTOM_API_KEY,
-                "limit": 1,
-                "countrySet": "IN",
-                "view": "IN",
-                "language": "en-GB",
-            },
-            timeout=10,
-        )
-        response.raise_for_status()
-
-        results = response.json().get("results", [])
-        if not results:
-            continue
-
-        top_match = results[0]
-        position = top_match.get("position") or {}
-        if "lat" not in position or "lon" not in position:
-            continue
-
-        return {
-            "label": top_match.get("address", {}).get("freeformAddress") or query,
-            "position": {
-                "lat": position["lat"],
-                "lon": position["lon"],
-            },
-        }
-
-    raise ValueError(f"No geocoding result found for '{place_name}'")
-
-
-def _fetch_route_points(origin, destination):
-    route_response = requests.get(
-        "https://api.tomtom.com/routing/1/calculateRoute/"
-        f"{origin['position']['lat']},{origin['position']['lon']}:"
-        f"{destination['position']['lat']},{destination['position']['lon']}/json",
-        params={
-            "key": settings.TOMTOM_API_KEY,
-            "traffic": "true",
-            "routeType": "fastest",
-            "travelMode": "car",
-        },
-        timeout=10,
-    )
-    route_response.raise_for_status()
-
-    routes = route_response.json().get("routes", [])
-    if not routes:
-        raise ValueError("TomTom did not return a route")
-
-    route = routes[0]
-    leg = (route.get("legs") or [{}])[0]
-    points = leg.get("points") or []
-    if len(points) < 2:
-        raise ValueError("TomTom returned an incomplete route geometry")
-
-    summary = route.get("summary") or {}
-    return {
-        "origin": origin,
-        "destination": destination,
-        "distance_meters": summary.get("lengthInMeters"),
-        "points": [
-            {
-                "lat": point["latitude"],
-                "lon": point["longitude"],
-            }
-            for point in points
-            if "latitude" in point and "longitude" in point
-        ],
-    }
-
-
-def _route_bbox(points, padding_ratio=0.12):
-    lats = [point["lat"] for point in points]
-    lons = [point["lon"] for point in points]
-
-    min_lat = min(lats)
-    max_lat = max(lats)
-    min_lon = min(lons)
-    max_lon = max(lons)
-
-    lat_padding = max((max_lat - min_lat) * padding_ratio, 0.05)
-    lon_padding = max((max_lon - min_lon) * padding_ratio, 0.05)
-
-    return {
-        "min_lat": max(min_lat - lat_padding, -85),
-        "max_lat": min(max_lat + lat_padding, 85),
-        "min_lon": max(min_lon - lon_padding, -180),
-        "max_lon": min(max_lon + lon_padding, 180),
-    }
-
-
-def _route_center_and_zoom(route_bbox):
-    center_lon = (route_bbox["min_lon"] + route_bbox["max_lon"]) / 2
-    center_lat = (route_bbox["min_lat"] + route_bbox["max_lat"]) / 2
-    lon_span = max(route_bbox["max_lon"] - route_bbox["min_lon"], 0.01)
-
-    if lon_span > 12:
-        zoom = 5
-    elif lon_span > 6:
-        zoom = 6
-    elif lon_span > 3:
-        zoom = 7
-    elif lon_span > 1.5:
-        zoom = 8
-    elif lon_span > 0.75:
-        zoom = 9
-    elif lon_span > 0.35:
-        zoom = 10
-    else:
-        zoom = 11
-
-    return {
-        "center": f"{center_lon},{center_lat}",
-        "zoom": zoom,
-    }
-
-
-def _request_static_map(params, timeout=15):
-    response = requests.get(
-        "https://api.tomtom.com/map/1/staticimage",
-        params=params,
-        timeout=timeout,
-        headers={"User-Agent": "TravelsApp/1.0"},
-    )
-    response.raise_for_status()
-    return response.content, response.headers.get("Content-Type", "image/jpeg")
-
-
-def _fetch_route_map_image(route_bbox, width=900, height=360):
-    center_config = _route_center_and_zoom(route_bbox)
-
-    base_params = {
-        "key": settings.TOMTOM_API_KEY,
-        "width": width,
-        "height": height,
-        "layer": "basic",
-        "style": "main",
-        "view": "Unified",
-        "language": "en-GB",
-        "format": "jpg",
-    }
-
-    bbox_params = {
-        **base_params,
-        "zoom": center_config["zoom"],
-        "bbox": ",".join(
-            [
-                str(route_bbox["min_lon"]),
-                str(route_bbox["min_lat"]),
-                str(route_bbox["max_lon"]),
-                str(route_bbox["max_lat"]),
-            ]
-        ),
-    }
-
-    try:
-        return _request_static_map(bbox_params)
-    except requests.RequestException as exc:
-        response = getattr(exc, "response", None)
-        if response is not None:
-            logger.warning(
-                "Static map bbox request failed: status=%s body=%s",
-                response.status_code,
-                response.text[:500],
-            )
-
-        center_params = {
-            **base_params,
-            "center": center_config["center"],
-            "zoom": center_config["zoom"],
-        }
-
-        try:
-            return _request_static_map(center_params)
-        except requests.RequestException as center_exc:
-            center_response = getattr(center_exc, "response", None)
-            if center_response is not None:
-                logger.warning(
-                    "Static map center request failed: status=%s body=%s",
-                    center_response.status_code,
-                    center_response.text[:500],
-                )
-            raise
 
 
 def generate_ticket_pdf_bytes(ticket):
@@ -481,23 +274,20 @@ class RefundTicketView(APIView):
 
      
         if request.user.email:
-            try:
-                Util.send_templated_email(
-                    subject="Refund Successful – Travels App",
-                    template_name="emails/refund_email.html",
-                    context={
-                        "username": request.user.username,
-                        "bus_name": booking.bus.bus_name,
-                        "origin": booking.bus.origin,
-                        "destination": booking.bus.destination,
-                        "seat_number": seat.seat_number,
-                        "amount": refund_amount,
-                        "booking_id": booking_id,
-                    },
-                    to_email=request.user.email,
-                )
-            except Exception as e:
-                print("Refund email failed:", e)
+            Util.queue_templated_email(
+                subject="Refund Successful – Travels App",
+                template_name="emails/refund_email.html",
+                context={
+                    "username": request.user.username,
+                    "bus_name": booking.bus.bus_name,
+                    "origin": booking.bus.origin,
+                    "destination": booking.bus.destination,
+                    "seat_number": seat.seat_number,
+                    "amount": refund_amount,
+                    "booking_id": booking_id,
+                },
+                to_email=request.user.email,
+            )
 
         return Response({"message": "Refund processed successfully"})
 
@@ -514,18 +304,15 @@ class RegisterApiView(APIView):
             user = serializer.save()
 
             if user.email:
-                try:
-                    Util.send_templated_email(
-                        subject="Welcome to Travels App",
-                        template_name="emails/register.html",
-                        context={
-                            "username": user.username,
-                            "link": "https://travels-project-v2.vercel.app/login",
-                        },
-                        to_email=user.email
-                    )
-                except Exception as e:
-                    print("Email failed:", e)
+                Util.queue_templated_email(
+                    subject="Welcome to Travels App",
+                    template_name="emails/register.html",
+                    context={
+                        "username": user.username,
+                        "link": "https://travels-project-v2.vercel.app/login",
+                    },
+                    to_email=user.email,
+                )
 
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
 
@@ -564,12 +351,6 @@ class RequestOTPView(APIView):
         serializer = RequestOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if not settings.ENABLE_LOCAL_REDIS:
-            return Response(
-                {"error": "OTP is not available in this environment"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-
         if not LocalRedisOTPService.is_available():
             return Response(
                 {"error": "Redis is not available"},  
@@ -607,7 +388,7 @@ class RequestOTPView(APIView):
             )
 
         try:
-            Util.send_templated_email(
+            Util.queue_templated_email(
                 subject="Your Travels App OTP",
                 template_name="emails/otp_email.html",
                 context={
@@ -616,13 +397,16 @@ class RequestOTPView(APIView):
                     "expiry_minutes": ttl_seconds // 60,
                 },
                 to_email=user.email,
+                fail_silently=False,
+                use_on_commit=False,
+                require_worker=True,
             )
         except Exception:
             LocalRedisOTPService.delete_otp(email)
-            logger.exception("Failed to send OTP email to user_id=%s", user.id)
+            logger.exception("Failed to enqueue OTP email for user_id=%s", user.id)
             return Response(
-                {"error": "Unable to send OTP email"},
-                status=status.HTTP_502_BAD_GATEWAY,
+                {"error": "Unable to queue OTP email. Please try again shortly."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         return Response(
@@ -637,12 +421,6 @@ class VerifyOTPView(APIView):
     def post(self, request):
         serializer = VerifyOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        if not settings.ENABLE_LOCAL_REDIS:
-            return Response(
-                {"error": "OTP is not available in this environment"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
 
         if not LocalRedisOTPService.is_available():
             return Response(
@@ -741,19 +519,16 @@ class RequestPasswordResetView(APIView):
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = PasswordResetTokenGenerator().make_token(user)
-        reset_link = f"https://trave ls-project-v2.vercel.app/reset-password/{uid}/{token}/"
-        try:
-            Util.send_templated_email(
-                subject="Reset Your Password - Travels App",
-                template_name="emails/reset_password.html",
-                context={
-                    "username": user.username,
-                    "reset_link": reset_link,
-                },
-                to_email=user.email
-            )
-        except Exception as e:
-            print("Password reset email failed:", e)
+        reset_link = f"https://travels-project-v2.vercel.app/reset-password/{uid}/{token}/"
+        Util.queue_templated_email(
+            subject="Reset Your Password - Travels App",
+            template_name="emails/reset_password.html",
+            context={
+                "username": user.username,
+                "reset_link": reset_link,
+            },
+            to_email=user.email,
+        )
 
         return Response({"message": "If this email exists, a reset link will be sent"}, status=status.HTTP_200_OK)
 
@@ -942,29 +717,26 @@ class VerifyPaymentView(APIView):
         pdf_bytes = generate_ticket_pdf_bytes(ticket)
 
         if request.user.email:
-            try:
-                Util.send_templated_email(
-                    subject="Your Bus Ticket – Travels App",
-                    template_name="emails/ticket_email.html",
-                    context={
-                        "username": request.user.username,
-                        "ticket_id": ticket.id,
-                        "bus_name": booking.bus.bus_name,
-                        "origin": booking.bus.origin,
-                        "destination": booking.bus.destination, 
-                        "seat_number": booking.seat.seat_number,
-                        "start_time": booking.bus.start_time,
-                        "reach_time": booking.bus.reach_time,
-                    },
-                    to_email=request.user.email,
-                    attachments=[{
-                        "filename": f"ticket_{ticket.id}.pdf",
-                        "content": pdf_bytes,
-                        "mimetype": "application/pdf",
-                    }]
-                )
-            except Exception as e:
-                print("Ticket email failed:", str(e)) 
+            Util.queue_templated_email(
+                subject="Your Bus Ticket – Travels App",
+                template_name="emails/ticket_email.html",
+                context={
+                    "username": request.user.username,
+                    "ticket_id": ticket.id,
+                    "bus_name": booking.bus.bus_name,
+                    "origin": booking.bus.origin,
+                    "destination": booking.bus.destination,
+                    "seat_number": booking.seat.seat_number,
+                    "start_time": booking.bus.start_time,
+                    "reach_time": booking.bus.reach_time,
+                },
+                to_email=request.user.email,
+                attachments=[{
+                    "filename": f"ticket_{ticket.id}.pdf",
+                    "content": pdf_bytes,
+                    "mimetype": "application/pdf",
+                }],
+            )
 
         return Response({
             "message": "Payment verified and booking confirmed",
@@ -1031,18 +803,18 @@ class BusRouteMapView(APIView):
         except Bus.DoesNotExist:
             return Response({"error": "Bus not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if not _tomtom_key_configured():
+        if not tomtom_key_configured():
             return Response(
                 {"error": "Map API key is not configured"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         try:
-            origin = _geocode_location(bus.origin)
-            destination = _geocode_location(bus.destination)
-            route_data = _fetch_route_points(origin, destination)
-            route_bbox = _route_bbox(route_data["points"])
-            image_bytes, content_type = _fetch_route_map_image(route_bbox)
+            origin = geocode_location(bus.origin)
+            destination = geocode_location(bus.destination)
+            route_data = fetch_route_points(origin, destination)
+            route_bounds = route_bbox(route_data["points"])
+            image_bytes, content_type = fetch_route_map_image(route_bounds)
         except ValueError as exc:
             return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         except requests.RequestException as exc:
@@ -1083,23 +855,20 @@ class CancelBookingView(APIView):
         seat.save()
 
         if request.user.email:
-            try:
-                Util.send_templated_email(
-                    subject="Booking Cancelled - Travels App",
-                    template_name="emails/booking_cancelled.html",
-                    context={
-                        "username": request.user.username,
-                        "bus_name": booking.bus.bus_name,
-                        "origin": booking.bus.origin,
-                        "destination": booking.bus.destination,
-                        "seat_number": seat.seat_number,
-                        "start_time": booking.bus.start_time,
-                        "reach_time": booking.bus.reach_time,
-                    },
-                    to_email=request.user.email
-                )
-            except Exception as e:
-                print("Cancel email failed:", e)
+            Util.queue_templated_email(
+                subject="Booking Cancelled - Travels App",
+                template_name="emails/booking_cancelled.html",
+                context={
+                    "username": request.user.username,
+                    "bus_name": booking.bus.bus_name,
+                    "origin": booking.bus.origin,
+                    "destination": booking.bus.destination,
+                    "seat_number": seat.seat_number,
+                    "start_time": booking.bus.start_time,
+                    "reach_time": booking.bus.reach_time,
+                },
+                to_email=request.user.email,
+            )
 
         booking.delete()
         return Response({"message": "Booking cancelled successfully"}, status=status.HTTP_200_OK)
