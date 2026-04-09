@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Clock3, MailCheck, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
 import api from "../api/api";
 
 const RESEND_SECONDS = 45;
+const OTP_LENGTH = 6;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const getErrorMessage = (error, fallback) =>
@@ -15,6 +17,20 @@ const getErrorMessage = (error, fallback) =>
 const isOtpUnavailableError = (error) =>
   error?.response?.status === 503 ||
   /otp is not available|redis is not available/i.test(getErrorMessage(error, ""));
+
+const formatEmailPreview = (value) => {
+  const [name, domain] = value.split("@");
+
+  if (!name || !domain) {
+    return value;
+  }
+
+  if (name.length <= 2) {
+    return `${name[0] || ""}*@${domain}`;
+  }
+
+  return `${name.slice(0, 2)}${"*".repeat(Math.max(name.length - 2, 2))}@${domain}`;
+};
 
 const OTPVerification = () => {
   const [email, setEmail] = useState("");
@@ -50,11 +66,22 @@ const OTPVerification = () => {
     return `${minutes}:${seconds}`;
   }, [timer]);
 
+  const otpSlots = useMemo(
+    () => Array.from({ length: OTP_LENGTH }, (_, index) => otp[index] || ""),
+    [otp]
+  );
+
+  const emailPreview = useMemo(() => formatEmailPreview(email), [email]);
+
   const showMessage = (type, text) => {
     setMessage({ type, text });
+
     if (type === "success") {
       toast.success(text);
-    } else if (type === "error") {
+      return;
+    }
+
+    if (type === "error") {
       toast.error(text);
     }
   };
@@ -68,7 +95,7 @@ const OTPVerification = () => {
     }
 
     if (!emailPattern.test(normalizedEmail)) {
-      showMessage("error", "Enter a valid email address before requesting an OTP.");
+      showMessage("error", "Enter a valid email address before requesting a verification code.");
       return null;
     }
 
@@ -83,6 +110,7 @@ const OTPVerification = () => {
 
     setLoading(true);
     setMessage({ type: "", text: "" });
+    setOtpUnavailable(false);
 
     try {
       const response = await api.post("/api/request-otp/", {
@@ -97,17 +125,16 @@ const OTPVerification = () => {
       showMessage(
         "success",
         response.data?.message ||
-          (isResend ? "A new OTP was sent to your email." : "OTP sent to your email.")
+          (isResend
+            ? "A fresh verification code was sent to your inbox."
+            : "Verification code sent to your email.")
       );
     } catch (error) {
       if (isOtpUnavailableError(error)) {
         setOtpUnavailable(true);
         setOtpSent(false);
         setTimer(0);
-        showMessage(
-          "error",
-          "Email verification by OTP is only available in local development right now."
-        );
+        showMessage("error", "Verification service is unavailable right now.");
         return;
       }
 
@@ -115,7 +142,9 @@ const OTPVerification = () => {
         "error",
         getErrorMessage(
           error,
-          isResend ? "Unable to resend OTP right now. Please try again." : "Unable to send OTP right now."
+          isResend
+            ? "Unable to resend the verification code right now. Please try again."
+            : "Unable to send the verification code right now."
         )
       );
     } finally {
@@ -123,21 +152,22 @@ const OTPVerification = () => {
     }
   };
 
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
+  const handleVerifyOtp = async (event) => {
+    event.preventDefault();
 
     const normalizedEmail = validateEmail();
     if (!normalizedEmail) {
       return;
     }
 
-    if (!otp.trim()) {
-      showMessage("error", "Please enter the OTP sent to your email.");
+    if (otp.trim().length !== OTP_LENGTH) {
+      showMessage("error", "Enter the 6-digit verification code from your email.");
       return;
     }
 
     setLoading(true);
     setMessage({ type: "", text: "" });
+    setOtpUnavailable(false);
 
     try {
       const response = await api.post("/api/verify-otp/", {
@@ -145,25 +175,19 @@ const OTPVerification = () => {
         otp: otp.trim(),
       });
 
-      showMessage(
-        "success",
-        response.data?.message || "Email verified successfully."
-      );
+      showMessage("success", response.data?.message || "Email verified successfully.");
     } catch (error) {
       if (isOtpUnavailableError(error)) {
         setOtpUnavailable(true);
         setOtpSent(false);
         setTimer(0);
-        showMessage(
-          "error",
-          "Email verification by OTP is only available in local development right now."
-        );
+        showMessage("error", "Verification service is unavailable right now.");
         return;
       }
 
       showMessage(
         "error",
-        getErrorMessage(error, "OTP verification failed. Please check the code and try again.")
+        getErrorMessage(error, "Verification failed. Please review the code and try again.")
       );
     } finally {
       setLoading(false);
@@ -171,124 +195,169 @@ const OTPVerification = () => {
   };
 
   return (
-    <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-[0_0_36px_rgba(34,211,238,0.18)] backdrop-blur-2xl">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-400 via-emerald-400 to-amber-300" />
-
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-emerald-400 to-amber-300 text-lg font-bold text-slate-950 shadow-[0_0_28px_rgba(16,185,129,0.35)]">
-          OTP
-        </div>
-        <h1 className="text-3xl font-semibold text-white">Email Verification</h1>
-        <p className="mt-2 text-sm text-gray-400">
-          Request a one-time password, enter the code from your inbox, and verify your email in one smooth step.
-        </p>
-      </div>
-
-      <form onSubmit={handleVerifyOtp} className="space-y-5">
-        <div>
-          <label className="mb-1 block text-sm text-gray-300">Email address</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-3 text-white placeholder-gray-500 outline-none transition focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/20"
-            autoComplete="email"
-          />
-          <p className="mt-2 text-xs text-gray-500">
-            We&apos;ll send a 6-digit OTP to this address.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => handleSendOtp(false)}
-          disabled={loading || otpUnavailable}
-          className="w-full rounded-2xl bg-gradient-to-r from-cyan-400 via-emerald-400 to-amber-300 px-4 py-3 font-semibold text-slate-950 transition hover:shadow-[0_0_24px_rgba(16,185,129,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {otpUnavailable
-            ? "OTP Unavailable Here"
-            : loading && !otpSent
-              ? "Sending OTP..."
-              : otpSent
-                ? "Send New OTP"
-                : "Send OTP"}
-        </button>
-
-        {otpSent && !otpUnavailable && (
-          <div className="space-y-4 rounded-3xl border border-emerald-400/20 bg-emerald-500/5 p-5">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                  Enter OTP
-                </h2>
-                <p className="mt-1 text-xs text-gray-400">
-                  Use the code that was sent to <span className="text-gray-200">{email}</span>.
-                </p>
-              </div>
-              <div className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-gray-300">
-                {timer > 0 ? `Resend in ${timerLabel}` : "Ready to resend"}
-              </div>
+    <section className="w-full max-w-md rounded-[1.75rem] border border-white/10 bg-[#111827]/95 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+      <div className="p-6 sm:p-7">
+        <div className="mb-7 flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300">
+              <MailCheck size={22} />
             </div>
 
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              placeholder="Enter 6-digit OTP"
-              className="w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-3 tracking-[0.35em] text-white placeholder:tracking-normal placeholder:text-gray-500 outline-none transition focus:border-emerald-400/70 focus:ring-2 focus:ring-emerald-400/20"
-              autoComplete="one-time-code"
-            />
+            <div>
+              <h1 className="text-2xl font-semibold text-white">Verify your email</h1>
+              <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">
+                Enter your email, request a verification code, and confirm it to secure your
+                account.
+              </p>
+            </div>
+          </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 rounded-2xl border border-emerald-300/40 bg-emerald-400/90 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? "Verifying..." : "Verify OTP"}
-              </button>
+          <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
+            Secure
+          </div>
+        </div>
+
+        <form onSubmit={handleVerifyOtp} className="space-y-6">
+          <div className="space-y-2">
+            <label htmlFor="verification-email" className="text-sm font-medium text-slate-300">
+              Email address
+            </label>
+            <input
+              id="verification-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+            />
+            <p className="text-xs leading-5 text-slate-500">
+              We will send a 6-digit verification code to this address.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-white">Request verification code</p>
+                <p className="mt-1 text-xs leading-5 text-slate-400">
+                  {otpSent
+                    ? `Code sent to ${emailPreview || "your inbox"}.`
+                    : "Request a one-time code to begin verification."}
+                </p>
+              </div>
 
               <button
                 type="button"
-                onClick={() => handleSendOtp(true)}
-                disabled={loading || timer > 0}
-                className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => handleSendOtp(false)}
+                disabled={loading || otpUnavailable}
+                className="inline-flex items-center justify-center rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300"
               >
-                {timer > 0 ? `Resend in ${timerLabel}` : "Resend OTP"}
+                {otpUnavailable
+                  ? "Service unavailable"
+                  : loading && !otpSent
+                    ? "Sending code..."
+                    : otpSent
+                      ? "Send new code"
+                      : "Send code"}
               </button>
             </div>
           </div>
-        )}
 
-        {message.text && (
-          <div
-            className={`rounded-2xl border px-4 py-3 text-sm ${
-              message.type === "success"
-                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
-                : "border-red-400/30 bg-red-500/10 text-red-200"
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
+          {otpSent && !otpUnavailable && (
+            <div className="space-y-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-white">Enter verification code</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-400">
+                    Use the latest code sent to <span className="font-medium text-slate-200">{email}</span>.
+                  </p>
+                </div>
 
-        {otpUnavailable && (
-          <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-            OTP verification is intentionally disabled outside local development, so the app stays safe without requiring Redis in production.
-          </div>
-        )}
-      </form>
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300">
+                  <Clock3 size={14} />
+                  {timer > 0 ? `Resend available in ${timerLabel}` : "You can request a new code"}
+                </div>
+              </div>
 
-      <div className="mt-8 text-center text-sm text-gray-400">
-        Already finished here?{" "}
-        <Link to="/login" className="text-cyan-300 hover:underline">
-          Return to login
-        </Link>
+              <div className="space-y-3">
+                <label htmlFor="verification-otp" className="text-sm font-medium text-slate-700">
+                  Verification code
+                </label>
+
+                <div className="grid grid-cols-6 gap-2">
+                  {otpSlots.map((digit, index) => (
+                    <div
+                      key={`otp-slot-${index}`}
+                      className="flex h-12 items-center justify-center rounded-xl border border-white/10 bg-[#0b1220] text-lg font-semibold text-white"
+                    >
+                      {digit || ""}
+                    </div>
+                  ))}
+                </div>
+
+                <input
+                  id="verification-otp"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={OTP_LENGTH}
+                  value={otp}
+                  onChange={(event) => setOtp(event.target.value.replace(/\D/g, ""))}
+                  autoComplete="one-time-code"
+                  placeholder="Enter the 6-digit code"
+                  className="w-full rounded-xl border border-white/10 bg-[#0b1220] px-4 py-3.5 text-center text-base tracking-[0.45em] text-white outline-none transition placeholder:text-left placeholder:tracking-normal placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                />
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300"
+                >
+                  {loading ? "Verifying..." : "Verify email"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSendOtp(true)}
+                  disabled={loading || timer > 0}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-slate-500"
+                >
+                  <RefreshCw size={16} />
+                  {timer > 0 ? `Resend in ${timerLabel}` : "Resend code"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {message.text && (
+            <div
+              className={`rounded-2xl border px-4 py-3 text-sm leading-6 ${
+                message.type === "success"
+                  ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
+                  : "border-red-400/20 bg-red-500/10 text-red-200"
+              }`}
+            >
+              {message.text}
+            </div>
+          )}
+
+          {otpUnavailable && (
+            <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-200">
+              Verification service is temporarily unavailable. Please try again in a little while.
+            </div>
+          )}
+        </form>
+
+        <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <p>Need to continue later? You can come back anytime.</p>
+          <Link to="/login" className="font-medium text-cyan-300 transition hover:text-cyan-200">
+            Return to login
+          </Link>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

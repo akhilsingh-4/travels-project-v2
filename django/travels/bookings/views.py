@@ -455,10 +455,17 @@ class VerifyOTPView(APIView):
         profile, _ = Profile.objects.get_or_create(user=user)
         profile.is_email_verified = True
         profile.save(update_fields=["is_email_verified"])
-        LocalRedisOTPService.delete_otp(email)  
+        LocalRedisOTPService.delete_otp(email)
+        LocalRedisOTPService.delete_user_profile_cache(user.id)
+
+        profile_data = UserProfileSerializer(user).data
 
         return Response(
-            {"message": "OTP verified successfully"},
+            {
+                "message": "OTP verified successfully",
+                "is_email_verified": True,
+                "user": profile_data,
+            },
             status=status.HTTP_200_OK,
         )
 

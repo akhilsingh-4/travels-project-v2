@@ -105,7 +105,7 @@ class Util:
             if not fail_silently:
                 raise RuntimeError("No Celery worker is available")
             return False
-
+  
         payload = {
             "subject": subject,
             "to_email": to_email,
@@ -117,7 +117,7 @@ class Util:
         def enqueue_email():
             try:
                 send_templated_email_task.delay(**payload)
-                return True
+                return True  
             except Exception:
                 logger.exception("Failed to enqueue email task for %s", to_email)
                 if not fail_silently:
@@ -129,3 +129,4 @@ class Util:
             return True
 
         return enqueue_email()
+  

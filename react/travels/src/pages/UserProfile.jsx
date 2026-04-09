@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProfile, updateProfile } from "../redux/slices/profileSlice";
+import { fetchProfile, setProfileUser, updateProfile } from "../redux/slices/profileSlice";
 import { toast } from "react-toastify";
 import api from "../api/api";
 import { resolveMediaUrl } from "../utils/url";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 const RESEND_SECONDS = 45;
+const OTP_LENGTH = 6;
 const getOtpErrorMessage = (error) =>
   error?.response?.data?.error ||
   error?.response?.data?.message ||
@@ -13,6 +15,10 @@ const getOtpErrorMessage = (error) =>
 const isOtpUnavailableError = (error) =>
   error?.response?.status === 503 ||
   /otp is not available|redis is not available/i.test(getOtpErrorMessage(error));
+
+const inputClassName =
+  "w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:bg-white/[0.07]";
+const inputLabelClassName = "mb-2 block text-sm font-medium text-slate-300";
 
 const UserProfile = () => {
 
@@ -34,8 +40,23 @@ const UserProfile = () => {
   const [timer, setTimer] = useState(0);
   const [otpUnavailable, setOtpUnavailable] = useState(false);
 
+  const timerLabel = useMemo(
+    () => `${String(Math.floor(timer / 60)).padStart(2, "0")}:${String(timer % 60).padStart(2, "0")}`,
+    [timer]
+  );
+
   useEffect(() => {
     dispatch(fetchProfile());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      dispatch(fetchProfile());
+    };
+
+    window.addEventListener("focus", handleWindowFocus);
+
+    return () => window.removeEventListener("focus", handleWindowFocus);
   }, [dispatch]);
 
   useEffect(() => {
@@ -144,7 +165,7 @@ const UserProfile = () => {
         setOtpSent(false);
         setOtp("");
         setTimer(0);
-        toast.info("Email verification by OTP is only available in local development.");
+        toast.info("OTP service is unavailable right now.");
       } else {
         toast.error(getOtpErrorMessage(error));
       }
@@ -153,9 +174,14 @@ const UserProfile = () => {
     }
   };
 
+  const handleStartVerification = async () => {
+    setShowOtpSection(true);
+    await handleSendOtp();
+  };
+
   const handleVerifyOtp = async () => {
-    if (!otp.trim()) {
-      toast.error("Enter the OTP to verify your email");
+    if (otp.trim().length !== OTP_LENGTH) {
+      toast.error("Enter the 6-digit OTP to verify your email");
       return;
     }
 
@@ -167,13 +193,22 @@ const UserProfile = () => {
         otp: otp.trim(),
       });
 
+      if (response.data?.user) {
+        dispatch(setProfileUser(response.data.user));
+      }
+
       setOtpUnavailable(false);
       toast.success(response.data?.message || "Email verified successfully");
       setShowOtpSection(false);
       setOtp("");
       setOtpSent(false);
       setTimer(0);
-      dispatch(fetchProfile());
+
+      try {
+        await dispatch(fetchProfile()).unwrap();
+      } catch {
+        
+      }
     } catch (error) {
       if (isOtpUnavailableError(error)) { 
         setOtpUnavailable(true);
@@ -181,7 +216,7 @@ const UserProfile = () => {
         setOtpSent(false);
         setOtp("");
         setTimer(0);
-        toast.info("Email verification by OTP is only available in local development.");
+        toast.info("OTP service is unavailable right now.");
       } else {
         toast.error(getOtpErrorMessage(error));
       }
@@ -189,10 +224,6 @@ const UserProfile = () => {
       setOtpLoading(false);
     }
   };
-
-  const timerLabel = `${String(Math.floor(timer / 60)).padStart(2, "0")}:${String(
-    timer % 60
-  ).padStart(2, "0")}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white py-16 px-4">
@@ -228,127 +259,152 @@ const UserProfile = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className={inputLabelClassName}>Profile photo</label>
+            <input
+              id="profile-photo-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <label
+              htmlFor="profile-photo-upload"
+              className="inline-flex cursor-pointer items-center rounded-xl bg-cyan-400 px-4 py-2.5 text-sm font-medium text-slate-950 transition hover:bg-cyan-300"
+            >
+              {form.avatar_url ? "Update" : "Upload"}
+            </label>
+          </div>
 
-          <input
-            value={form.username}
-            disabled
-            className="w-full p-3 rounded bg-gray-800"
-          />
+          <div>
+            <label className={inputLabelClassName}>Username</label>
+            <input
+              value={form.username}
+              disabled
+              className={`${inputClassName} cursor-not-allowed text-slate-400`}
+            />
+          </div>
 
-          <input
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Email"
-            className="w-full p-3 rounded bg-gray-800"
-          />
+          <div>
+            <label className={inputLabelClassName}>Email</label>
+            <input
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email"
+              className={inputClassName}
+            />
+          </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Email verification</p>
-                <p
-                  className={`text-sm font-medium ${
-                    user?.is_email_verified ? "text-emerald-300" : "text-amber-300"
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_18px_45px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-400">Email verification</p>
+                <p className="text-base font-semibold text-white">{form.email || "No email added"}</p>
+
+                <div
+                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
+                    user?.is_email_verified
+                      ? "bg-emerald-500/15 text-emerald-300"
+                      : "bg-amber-500/15 text-amber-300"
                   }`}
                 >
-                  {user?.is_email_verified ? "Verified" : "Not Verified"}
-                </p>
+                  {user?.is_email_verified ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                  {user?.is_email_verified ? "Verified" : "Not verified"}
+                </div>
               </div>
 
-              {!user?.is_email_verified && (
+              {!user?.is_email_verified && !showOtpSection && (
                 <button
                   type="button"
-                  onClick={() => setShowOtpSection((current) => !current)}
-                  disabled={otpUnavailable}
-                  className="rounded-lg border border-cyan-400/30 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-500/10"
+                  onClick={handleStartVerification}
+                  disabled={otpLoading || otpUnavailable || !form.email.trim()}
+                  className="rounded-xl bg-cyan-400 px-4 py-2.5 text-sm font-medium text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300"
                 >
-                  {otpUnavailable
-                    ? "OTP Unavailable"
-                    : showOtpSection
-                      ? "Hide Verification"
-                      : "Verify Email"}
+                  {otpLoading && !showOtpSection ? "Please wait..." : "Verify Email"}
                 </button>
               )}
             </div>
 
-            {!user?.is_email_verified && otpUnavailable && (
-              <div className="mt-4 rounded-lg border border-amber-400/20 bg-amber-500/10 p-3 text-sm text-amber-100">
-                OTP-based email verification is available only in local development. Production continues without Redis and without this step.
-              </div>
-            )}
+            {!user?.is_email_verified && (
+              <div
+                className={`grid transition-all duration-300 ease-out ${
+                  showOtpSection ? "mt-5 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="space-y-4 border-t border-white/10 pt-5">
+                    {otpUnavailable ? (
+                      <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                        OTP service is unavailable right now.
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className={inputLabelClassName}>Verification code</label>
+                          <input
+                            type="text"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                            placeholder="Enter 6-digit code"
+                            inputMode="numeric"
+                            maxLength={OTP_LENGTH}
+                            className={inputClassName}
+                          />
+                        </div>
 
-            {!user?.is_email_verified && showOtpSection && !otpUnavailable && (
-              <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    disabled={otpLoading}
-                    className="rounded-lg bg-cyan-500 px-4 py-2 font-medium text-black transition disabled:opacity-60"
-                  >
-                    {otpLoading && !otpSent ? "Sending..." : otpSent ? "Send Again" : "Send OTP"}
-                  </button>
+                        <div className="flex items-center justify-between gap-4">
+                          <button
+                            type="button"
+                            onClick={handleVerifyOtp}
+                            disabled={otpLoading}
+                            className="rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-medium text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300"
+                          >
+                            {otpLoading ? "Verifying..." : "Verify"}
+                          </button>
 
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    disabled={otpLoading || timer > 0 || !otpSent}
-                    className="rounded-lg border border-white/15 px-4 py-2 text-sm text-gray-200 transition disabled:opacity-50"
-                  >
-                    {timer > 0 ? `Resend in ${timerLabel}` : "Resend OTP"}
-                  </button>
-                </div>
-
-                {otpSent && (
-                  <div className="space-y-3">
-                    <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                      placeholder="Enter OTP"
-                      maxLength={6}
-                      className="w-full rounded bg-gray-800 p-3 tracking-[0.3em]"
-                    />                  
-
-                    <button
-                      type="button"
-                      onClick={handleVerifyOtp}
-                      disabled={otpLoading}
-                      className="w-full rounded bg-emerald-500 p-3 font-medium text-black transition disabled:opacity-60"
-                    >
-                      {otpLoading ? "Verifying..." : "Verify OTP"}
-                    </button>
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            disabled={otpLoading || timer > 0}
+                            className="text-sm font-medium text-slate-400 transition hover:text-cyan-300 disabled:cursor-not-allowed disabled:text-slate-600"
+                          >
+                            {timer > 0 ? `Resend code in ${timerLabel}` : "Resend code"}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             )}
           </div>
 
-          <input
-            name="first_name"
-            value={form.first_name}
-            onChange={handleChange}
-            placeholder="First Name"
-            className="w-full p-3 rounded bg-gray-800"
-          />
+          <div>
+            <label className={inputLabelClassName}>First name</label>
+            <input
+              name="first_name"
+              value={form.first_name}
+              onChange={handleChange}
+              placeholder="First Name"
+              className={inputClassName}
+            />
+          </div>
 
-          <input
-            name="last_name"
-            value={form.last_name}
-            onChange={handleChange}
-            placeholder="Last Name"
-            className="w-full p-3 rounded bg-gray-800"
-          />
+          <div>
+            <label className={inputLabelClassName}>Last name</label>
+            <input
+              name="last_name"
+              value={form.last_name}
+              onChange={handleChange}
+              placeholder="Last Name"
+              className={inputClassName}
+            />
+          </div>
 
           <button
             type="submit"
-            className="w-full p-3 bg-cyan-500 rounded"
+            className="w-full rounded-2xl bg-cyan-400 px-4 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
           >
             Save Changes
           </button>
